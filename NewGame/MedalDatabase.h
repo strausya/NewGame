@@ -3,7 +3,8 @@
 #include <vector>
 
 
-MedalDatabase {
+class MedalDatabase {
+
 public:
     static const std::vector<Medal>& GetAllMedals();
     static const Medal* FindByName(const std::wstring& name);
