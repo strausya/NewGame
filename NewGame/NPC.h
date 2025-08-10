@@ -8,6 +8,13 @@
 
 class Player;
 
+enum class NPCType {
+    TRADER,      // Обычный торговец
+    COLLECTOR,   // Коллекционер
+    VETERAN,     // Ветеран
+    HOBBYIST     // Любитель
+};
+
 enum class BargainTactic {
     BLUFF,      // Блеф
     FLATTERY,   // Лесть
@@ -20,20 +27,23 @@ class NPC {
 private:
     std::map<BargainTactic, std::vector<std::wstring>> dialogLines;
     void InitializeDialogs();
-
-public:
+    
+   public:
     std::wstring name;
     std::wstring backstory;
     float bargainDifficulty; // Сложность торга (0-1)
     float gullibility; // Вероятность поверить обману (0-1)
     std::vector<Medal> medalsForSale;
     int money; // Деньги NPC
+    NPCType type;
+    NPC(const std::wstring& name, const std::wstring& backstory, NPCType type,
+        float bargainDifficulty, float gullibility, int money = 0);
 
-    std::wstring GetDialogResponse(BargainTactic tactic, bool success);
+
+    std::wstring GetDialogResponse(BargainTactic, bool success);
     float CalculateTacticSuccessChance(BargainTactic tactic, const Player& player);
 
-    NPC(const std::wstring& name, const std::wstring& backstory,
-        float bargainDifficulty, float gullibility, int money);
+
 
     void AddMedal(const Medal& medal);
     bool TryToCheat(Player& player, const Medal& medal); // Попытка обмануть

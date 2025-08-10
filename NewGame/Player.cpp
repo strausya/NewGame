@@ -116,6 +116,7 @@ void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
 
         int tacticChoice;
         std::wcin >> tacticChoice;
+        
         BargainTactic tactic = static_cast<BargainTactic>(tacticChoice - 1);
 
 

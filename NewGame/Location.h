@@ -20,7 +20,9 @@ public:
     float fakeDetectionChance = 0.5f;
     float bargainBonus = 0.0f;
     std::vector<NPC> npcs;
+
     void AddNPC(const NPC& npc);
+    void InitializeNPCs();
 
 
     explicit Location(LocationType locType);

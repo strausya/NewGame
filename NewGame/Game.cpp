@@ -24,7 +24,7 @@ void Game::PrintAnimated(const std::wstring& text, int delayMs) {
 
 void Game::StartGame() {
 
-    //player.InitPrevStats();
+
 
     auto startingMedals = MedalDatabase::GetRandomMedals(1);
 
