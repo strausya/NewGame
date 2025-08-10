@@ -5,6 +5,7 @@
 #include "Medal.h"
 #include "Location.h"
 #include <iostream>
+#include <iomanip>
 #include <random>
 
 void Player::Trade(Location& currentLocation) {
@@ -224,47 +225,73 @@ void Player::ShowInventory() const {
     }
 }
 
+void Player::InitPrevStats() {
+    prevMoney = money;
+    prevHunger = hunger;
+    prevFatigue = fatigue;
+    prevReputation = reputation;
+}
+
+void Player::ShowChangedStats() {
+    if (money != prevMoney) {
+        std::wcout << L"Деньги: " << money << L" руб.\n";
+        prevMoney = money;
+    }
+    if (hunger != prevHunger) {
+        std::wcout << L"Голод: " << hunger << L"%\n";
+        prevHunger = hunger;
+    }
+    if (fatigue != prevFatigue) {
+        std::wcout << L"Усталость: " << fatigue << L"%\n";
+        prevFatigue = fatigue;
+    }
+    if (reputation != prevReputation) {
+        std::wcout << L"Репутация: " << reputation << L"\n";
+        prevReputation = reputation;
+    }
+}
+
 void Player::ShowStats() const {
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
     std::wcout << L"┌───────────────────────────────────────┐\n";
     std::wcout << L"│ ";
     ConsoleColors::SetColor(ConsoleColors::WHITE);
-    std::wcout << L"Состояние игрока:";
+    std::wcout << L"Состояние игрока";
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
-    std::wcout << L"                                        │\n";
-    std::wcout << L"│                                       │\n";
+    std::wcout << L"                      │\n";
+    std::wcout << L"├───────────────────────────────────────┤\n";
 
     // Деньги
-    std::wcout << L"│ Деньги: ";
+    std::wcout << L"│ Деньги:      ";
     ConsoleColors::SetColor(ConsoleColors::GREEN);
-    std::wcout << money << L" руб.";
+    std::wcout << std::setw(8) << money;
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
-    std::wcout << L"                                        │\n";
+    std::wcout << L" руб.            │\n";
 
     // Голод
-    std::wcout << L"│ Голод: ";
+    std::wcout << L"│ Голод:       ";
     if (hunger > 70) ConsoleColors::SetColor(ConsoleColors::RED);
     else ConsoleColors::SetColor(ConsoleColors::WHITE);
-    std::wcout << hunger << L"%";
+    std::wcout << std::setw(8) << hunger << L"%";
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
-    std::wcout << L"                                        │\n";
+    std::wcout << L"                │\n";
 
     // Усталость
-    std::wcout << L"│ Усталость: ";
-    if (fatigue > 70 || fatigue == 100) ConsoleColors::SetColor(ConsoleColors::RED);
+    std::wcout << L"│ Усталость:   ";
+    if (fatigue > 70) ConsoleColors::SetColor(ConsoleColors::RED);
     else ConsoleColors::SetColor(ConsoleColors::WHITE);
-    std::wcout << fatigue << L"%";
+    std::wcout << std::setw(8) << fatigue << L"%";
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
-    std::wcout << L"                                        │\n";
+    std::wcout << L"                │\n";
 
     // Репутация
-    std::wcout << L"│ Репутация: ";
+    std::wcout << L"│ Репутация:   ";
     if (reputation > 50) ConsoleColors::SetColor(ConsoleColors::GREEN);
     else if (reputation < 0) ConsoleColors::SetColor(ConsoleColors::RED);
     else ConsoleColors::SetColor(ConsoleColors::WHITE);
-    std::wcout << reputation;
+    std::wcout << std::setw(8) << reputation;
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
-    std::wcout << L"                                        │\n";
+    std::wcout << L"                 │\n";
 
     std::wcout << L"└───────────────────────────────────────┘\n";
     ConsoleColors::Reset();

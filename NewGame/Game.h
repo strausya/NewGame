@@ -26,7 +26,10 @@ private:
     int actionsToday = 0;        // —четчик действий за день
     bool isOverworked = false;   // ‘лаг перегруза
     bool firstActionOfDay;
-    static void PrintAnimated(const std::wstring& text, int delayMs = 30);
+    static void PrintAnimated(const std::wstring& text, int delayMs = 1);
+    std::vector<std::wstring> prevActions; // предыдущее меню действий
+    void ShowActionsIfChanged(const std::vector<std::wstring>& currentActions);
+    bool skipUI = false;
 
 public:
     Game();

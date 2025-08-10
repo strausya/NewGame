@@ -38,7 +38,7 @@ int NPC::Bargain(int initialPrice, float playerSkill) {
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
     float bargainEffect = playerSkill * (1.0f - bargainDifficulty);
-    float discount = std::fmin(0.3f, bargainEffect * 0.3f);  // Fixed clamp function
+    float discount = std::fmin(0.3f, bargainEffect * 0.3f); 
 
     return static_cast<int>(initialPrice * (1.0f - discount));
 }

@@ -12,7 +12,10 @@ class NPC;
 class Player {
 private:
     void StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice);
-
+    int prevMoney = -1;
+    int prevHunger = -1;
+    int prevFatigue = -1;
+    int prevReputation = -1;
 
 public:
     int money = 0;
@@ -27,4 +30,6 @@ public:
     void EatFood();
     void Rest();
     void ShowStats() const;
+    void ShowChangedStats();
+    void InitPrevStats();
 };

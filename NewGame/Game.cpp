@@ -2,6 +2,7 @@
 #include <iostream>
 #include "ConsoleColors.h"
 #include <limits>
+#include <string>
 
 std::vector<Location> Game::availableLocations = {
     Location(LocationType::BaldRock),
@@ -23,7 +24,7 @@ void Game::PrintAnimated(const std::wstring& text, int delayMs) {
 
 void Game::StartGame() {
 
-    player.ShowStats();
+    //player.InitPrevStats();
 
     auto startingMedals = MedalDatabase::GetRandomMedals(1);
 
@@ -61,10 +62,22 @@ void Game::ShowLocations() const {
     }
 }
 
+void Game::ShowActionsIfChanged(const std::vector<std::wstring>& currentActions) {
+    if (currentActions != prevActions) {
+        std::wcout << L"\n=== Доступные действия ===\n";
+        for (size_t i = 0; i < currentActions.size(); ++i) {
+            std::wcout << i + 1 << L". " << currentActions[i] << L"\n";
+        }
+        prevActions = currentActions;
+    }
+}
+
 void Game::RenderUI() {
 
-
-
+    if (skipUI) {
+        skipUI = false; // сброс
+        return;
+    }
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
     std::wcout << L"\n...........................................\n";
 
@@ -72,15 +85,15 @@ void Game::RenderUI() {
     std::wcout << L"=== День " << day << L" ===\n";
     std::wcout << weather.GetWeatherDescription() << L"\n";
     ConsoleColors::Reset();
+    //player.ShowChangedStats();
     player.ShowStats();
 
     ConsoleColors::SetColor(ConsoleColors::GREEN);
-    std::wcout << L"Локация: " << currentLocation.name << L"\n";
+    PrintAnimated(L"Локация: " + currentLocation.name + L"\n");
 
     ConsoleColors::Reset();
-        if (!waitingForDayEnd) {
-            PrintAnimated(L"1. Выпить кофе и поес \n2. Царственно отдыхать \n3. Торговать \n4. Сменить локацию \n5. Поговорить с NPC\n6. Закончить день\n Что выбираешь?: ");
-        }
+        std::vector<std::wstring> actions = { L"1. Выпить кофе и поес \n2. Царственно отдыхать \n3. Торговать \n4. Сменить локацию \n5. Поговорить с NPC\n6. Закончить день\n Что выбираешь?: " };
+        ShowActionsIfChanged(actions);
 
     if (actionsToday > 9) {
         ConsoleColors::SetColor(ConsoleColors::RED);
@@ -109,43 +122,13 @@ void Game::HandlePlayerChoice(int choice) {
                 ConsoleColors::Reset();
             }
         }
-
-        
-    /*if (waitingForDayEnd) {
-        if (choice == 1) {
-            NextDay();
-            waitingForDayEnd = false;
-        }
-        else if (choice == 0) {
-            waitingForDayEnd = false;
-            std::wcout << L"День продолжается.\n";
-        }
-        return;
-    }*/
-/*
- ConsoleColors::SetColor(ConsoleColors::YELLOW);
- std::wcout << L"\n...........................................\n";
-
- ConsoleColors::SetColor(ConsoleColors::CYAN);
- std::wcout << L"=== День " << day << L" ===\n";
- std::wcout << weather.GetWeatherDescription() << L"\n";
- ConsoleColors::Reset();
- player.ShowStats();
-
- ConsoleColors::SetColor(ConsoleColors::GREEN);
- std::wcout << L"Локация: " << currentLocation.name << L"\n";
-
- ConsoleColors::Reset();
- if (!waitingForDayEnd) {
-     std::wcout << L"1. Выпить кофе и поес \n2. Царственно отдыхать \n3. Торговать \n4. Сменить локацию \n5. Поговорить с NPC\n6. Закончить день\n Что выбираешь?: ";
- }
-*/
+ 
     switch (choice) {
-    case 1: player.EatFood(); break;
-    case 2: player.Rest(); break;
-    case 3: player.Trade(currentLocation); break;
-    case 4: ChangeLocation(); break;
-    case 5: InteractWithNPC(); break;
+    case 1: player.EatFood(); skipUI = true; break;
+    case 2: player.Rest(); skipUI = true; break;
+    case 3: player.Trade(currentLocation);  break;
+    case 4: ChangeLocation(); skipUI = true; break;
+    case 5: InteractWithNPC(); skipUI = true; break;
     case 6:
         NextDay();
         return; 
@@ -211,7 +194,9 @@ void Game::NextDay() {
     std::wcout << weather.GetFullDayDescription();
     ConsoleColors::Reset();
    
+    //player.ShowChangedStats();
     player.ShowStats();
+    prevActions.clear();
 
     CheckFinalConditions();
 
@@ -226,7 +211,7 @@ void Game::NextDay() {
 
 void Game::ShowEventMenu() {
     ConsoleColors::SetColor(ConsoleColors::MAGENTA);
-    std::wcout << L"\n=== Произошло событие! ===\n";
+    PrintAnimated(L"Произошло что!!!");
     ConsoleColors::Reset();
 
     for (const auto& event : currentEvents) {
@@ -406,3 +391,4 @@ void Game::InteractWithNPC() {
         std::wcout << L"У тебя недостаточно денег!\n";
     }
 }
+

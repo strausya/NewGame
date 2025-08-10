@@ -125,7 +125,6 @@
   <ItemGroup>
     <ClCompile Include="ConsoleColors.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Location.cpp" />
     <ClCompile Include="Medal.cpp" />
@@ -140,7 +139,6 @@
     <ClInclude Include="ConsoleColors.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameEvents.h" />
-    <ClInclude Include="GameManager.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="Location.h" />
     <ClInclude Include="Medal.h" />
