@@ -13,6 +13,23 @@ std::vector<Location> Game::availableLocations = {
 
 Game::Game() : currentLocation(LocationType::Stakha) {
     firstActionOfDay = true;
+    InitTaxes();
+
+}
+
+void Game::InitTaxes() {
+    taxesList = {
+        {L"Ежегодный взнос на развитие патриотического самосознания", 1400},
+        {L"Плата за информационную безопасность граждан", 2200},
+        {L"Сбор за упрощение административных процедур", 900},
+        {L"Налог на цифровую трансформацию экономики", 1750},
+        {L"Взнос на поддержку традиционных ценностей", 1300},
+        {L"Платёж за интеграцию в национальную платежную систему", 800},
+        {L"Налог на благоустройство и комфортную городскую среду", 1950},
+        {L"Взнос на развитие искусственного интеллекта", 1650},
+        {L"Сбор на создание единой базы данных обо всех", 2100},
+        {L"Обязательный взнос в фонд модернизации ЖКХ", 2500}
+    };
 }
 
 void Game::PrintAnimated(const std::wstring& text, int delayMs) {
@@ -24,7 +41,22 @@ void Game::PrintAnimated(const std::wstring& text, int delayMs) {
 
 void Game::StartGame() {
 
+    std::wcout << L"·····································································································" << std::endl;
+    std::wcout << L": ________  ___  ___  ___  ________  _________  ___  ___       ________  ___  ___  ___  _________   :" << std::endl;
+    std::wcout << L":|\\   ____\\|\\  \\|\\  \\|\\  \\|\\   ____\\|\\___   ___\\\\  \\|\\  \\     |\\   ____\\|\\  \\|\\  \\|\\  \\|\\___   ___\\ :" << std::endl;
+    std::wcout << L":\\ \\  \\___|\\ \\  \\\\\\  \\ \\  \\ \\  \\___|\\|___ \\  \\_\\ \\  \\ \\  \\    \\ \\  \\___|\\ \\  \\\\\\  \\ \\  \\|___ \\  \\_| :" << std::endl;
+    std::wcout << L": \\ \\  \\    \\ \\   __  \\ \\  \\ \\_____  \\   \\ \\  \\ \\ \\  \\ \\  \\    \\ \\_____  \\ \\   __  \\ \\  \\   \\ \\  \\  :" << std::endl;
+    std::wcout << L":  \\ \\  \\____\\ \\  \\ \\  \\ \\  \\|____|\\  \\   \\ \\  \\ \\ \\  \\ \\  \\____\\|____|\\  \\ \\  \\ \\  \\ \\  \\   \\ \\  \\ :" << std::endl;
+    std::wcout << L":   \\ \\_______\\ \\__\\ \\__\\ \\__\\____\\_\\  \\   \\ \\__\\ \\ \\__\\ \\_______\\____\\_\\  \\ \\__\\ \\__\\ \\__\\   \\ \\__\\:" << std::endl;
+    std::wcout << L":    \\|_______|\\|__|\\|__|\\|__|\\_________\\   \\|__|  \\|__|\\|_______|\\_________\\|__|\\|__|\\|__|    \\|__|:" << std::endl;
+    std::wcout << L":                            \\|_________|                        \\|_________|                       :" << std::endl;
+    std::wcout << L"·····································································································" << std::endl;
 
+
+    Beep(392, 300);  // Соль (G4)
+    Beep(440, 300);  // Ля (A4)
+    Beep(392, 300);  // Соль (G4)
+    Beep(330, 600);  // Ми (E4) — длинная нота
 
     auto startingMedals = MedalDatabase::GetRandomMedals(1);
 
@@ -155,6 +187,36 @@ void Game::ApplyWeatherEffects() {
     }
 }
 
+void Game::ProcessDailyPayments() {
+    // Списываем ЖКХ
+    player.money -= utilitiesCost;
+    std::wcout << L"С вас снято " << utilitiesCost << L" руб. за ЖКХ.\n";
+
+    // Перемешиваем налоги
+    std::shuffle(taxesList.begin(), taxesList.end(), rng);
+
+    // Списываем налоги с рандомизацией суммы
+    std::uniform_real_distribution<> variation(0.8, 1.2);
+    for (auto& tax : taxesList) {
+        int finalAmount = static_cast<int>(tax.amount * variation(rng));
+        player.money -= finalAmount;
+        std::wcout << L"С вас снято " << finalAmount << L" руб. — " << tax.name << L".\n";
+    }
+
+    // Оплата квартиры
+    if (!rentPaid) {
+        if (daysUntilEviction > 0) {
+            std::wcout << L"У вас есть " << daysUntilEviction
+                << L" день, чтобы заплатить за квартиру: " << rentDue << L" руб.\n";
+            daysUntilEviction--;
+        }
+        else {
+            rentDue = static_cast<int>(rentDue * (1.0 + rentIncreaseRate));
+            std::wcout << L"Вы не заплатили вовремя! Долг вырос до " << rentDue << L" руб.\n";
+        }
+    }
+}
+
 void Game::NextDay() {
     weather.GenerateNewWeather();
 
@@ -206,6 +268,8 @@ void Game::NextDay() {
     if (!currentEvents.empty()) {
         eventActive = true;
     }
+
+    ProcessDailyPayments();
 
 }
 
