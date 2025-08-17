@@ -9,4 +9,6 @@ public:
     static const std::vector<Medal>& GetAllMedals();
     static const Medal* FindByName(const std::wstring& name);
     static std::vector<Medal> GetRandomMedals(int count);
+    static std::vector<Medal> GetCheapestMedals(int count);
+
 };

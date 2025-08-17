@@ -100,6 +100,67 @@ void Player::Trade(Location& currentLocation) {
         }
 }
 
+void Player::BuyFromNPC(Location& currentLocation) {
+    if (currentLocation.npcs.empty()) {
+        std::wcout << L"Здесь нет продавцов.\n";
+        return;
+    }
+
+    // Выбор NPC
+    std::wcout << L"Выберите NPC для покупки:\n";
+    for (size_t i = 0; i < currentLocation.npcs.size(); ++i) {
+        std::wcout << i + 1 << L". " << currentLocation.npcs[i].name << L"\n";
+    }
+
+    size_t npcChoice;
+    std::wcin >> npcChoice;
+    if (npcChoice < 1 || npcChoice > currentLocation.npcs.size()) {
+        std::wcout << L"Неверный выбор.\n";
+        return;
+    }
+    NPC& npc = currentLocation.npcs[npcChoice - 1];
+
+    if (npc.medalsForSale.empty()) {
+        std::wcout << L"У этого NPC нет медалей на продажу.\n";
+        return;
+    }
+
+    // Показать список медалей
+    std::wcout << L"Медали у " << npc.name << L":\n";
+    for (size_t i = 0; i < npc.medalsForSale.size(); ++i) {
+        std::wcout << i + 1 << L". " << npc.medalsForSale[i].name
+            << L" (" << npc.medalsForSale[i].condition << L") "
+            << npc.medalsForSale[i].minPrice << L" - "
+            << npc.medalsForSale[i].maxPrice << L" руб.\n";
+    }
+
+    size_t medalChoice;
+    std::wcin >> medalChoice;
+    if (medalChoice < 1 || medalChoice > npc.medalsForSale.size()) {
+        std::wcout << L"Неверный выбор.\n";
+        return;
+    }
+
+    Medal chosenMedal = npc.medalsForSale[medalChoice - 1];
+    MedalManager manager;
+    int price = manager.GetMarketValue(chosenMedal, reputation, false);
+
+    std::wcout << L"Цена: " << price << L" руб. Купить? (1 - да, 0 - нет): ";
+    int confirm;
+    std::wcin >> confirm;
+    if (confirm != 1) return;
+
+    if (money >= price) {
+        money -= price;
+        inventory.Add(chosenMedal);
+        npc.medalsForSale.erase(npc.medalsForSale.begin() + (medalChoice - 1));
+        std::wcout << L"Вы купили медаль!\n";
+    }
+    else {
+        std::wcout << L"У вас недостаточно денег.\n";
+    }
+}
+
 void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
     std::wcout << L"\n=== ТОРГ ===\n";
     std::wcout << L"Текущая цена: " << currentPrice << L" руб.\n\n";

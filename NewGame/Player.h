@@ -32,4 +32,5 @@ public:
     void ShowStats() const;
     void ShowChangedStats();
     void InitPrevStats();
+    void BuyFromNPC(Location& currentLocation);
 };

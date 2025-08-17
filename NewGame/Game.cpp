@@ -3,6 +3,8 @@
 #include "ConsoleColors.h"
 #include <limits>
 #include <string>
+#include <Windows.h>
+
 
 std::vector<Location> Game::availableLocations = {
     Location(LocationType::BaldRock),
@@ -19,16 +21,16 @@ Game::Game() : currentLocation(LocationType::Stakha) {
 
 void Game::InitTaxes() {
     taxesList = {
-        {L"Р•Р¶РµРіРѕРґРЅС‹Р№ РІР·РЅРѕСЃ РЅР° СЂР°Р·РІРёС‚РёРµ РїР°С‚СЂРёРѕС‚РёС‡РµСЃРєРѕРіРѕ СЃР°РјРѕСЃРѕР·РЅР°РЅРёСЏ", 1400},
-        {L"РџР»Р°С‚Р° Р·Р° РёРЅС„РѕСЂРјР°С†РёРѕРЅРЅСѓСЋ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ РіСЂР°Р¶РґР°РЅ", 2200},
-        {L"РЎР±РѕСЂ Р·Р° СѓРїСЂРѕС‰РµРЅРёРµ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РёРІРЅС‹С… РїСЂРѕС†РµРґСѓСЂ", 900},
-        {L"РќР°Р»РѕРі РЅР° С†РёС„СЂРѕРІСѓСЋ С‚СЂР°РЅСЃС„РѕСЂРјР°С†РёСЋ СЌРєРѕРЅРѕРјРёРєРё", 1750},
-        {L"Р’Р·РЅРѕСЃ РЅР° РїРѕРґРґРµСЂР¶РєСѓ С‚СЂР°РґРёС†РёРѕРЅРЅС‹С… С†РµРЅРЅРѕСЃС‚РµР№", 1300},
-        {L"РџР»Р°С‚С‘Р¶ Р·Р° РёРЅС‚РµРіСЂР°С†РёСЋ РІ РЅР°С†РёРѕРЅР°Р»СЊРЅСѓСЋ РїР»Р°С‚РµР¶РЅСѓСЋ СЃРёСЃС‚РµРјСѓ", 800},
-        {L"РќР°Р»РѕРі РЅР° Р±Р»Р°РіРѕСѓСЃС‚СЂРѕР№СЃС‚РІРѕ Рё РєРѕРјС„РѕСЂС‚РЅСѓСЋ РіРѕСЂРѕРґСЃРєСѓСЋ СЃСЂРµРґСѓ", 1950},
-        {L"Р’Р·РЅРѕСЃ РЅР° СЂР°Р·РІРёС‚РёРµ РёСЃРєСѓСЃСЃС‚РІРµРЅРЅРѕРіРѕ РёРЅС‚РµР»Р»РµРєС‚Р°", 1650},
-        {L"РЎР±РѕСЂ РЅР° СЃРѕР·РґР°РЅРёРµ РµРґРёРЅРѕР№ Р±Р°Р·С‹ РґР°РЅРЅС‹С… РѕР±Рѕ РІСЃРµС…", 2100},
-        {L"РћР±СЏР·Р°С‚РµР»СЊРЅС‹Р№ РІР·РЅРѕСЃ РІ С„РѕРЅРґ РјРѕРґРµСЂРЅРёР·Р°С†РёРё Р–РљРҐ", 2500}
+        {L"Ежегодный взнос на развитие патриотического самосознания", 1400},
+        {L"Плата за информационную безопасность граждан", 2200},
+        {L"Сбор за упрощение административных процедур", 900},
+        {L"Налог на цифровую трансформацию экономики", 1750},
+        {L"Взнос на поддержку традиционных ценностей", 1300},
+        {L"Платёж за интеграцию в национальную платежную систему", 800},
+        {L"Налог на благоустройство и комфортную городскую среду", 1950},
+        {L"Взнос на развитие искусственного интеллекта", 1650},
+        {L"Сбор на создание единой базы данных обо всех", 2100},
+        {L"Обязательный взнос в фонд модернизации ЖКХ", 2500}
     };
 }
 
@@ -41,7 +43,7 @@ void Game::PrintAnimated(const std::wstring& text, int delayMs) {
 
 void Game::StartGame() {
 
-    std::wcout << L"В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·" << std::endl;
+    std::wcout << L"·····································································································" << std::endl;
     std::wcout << L": ________  ___  ___  ___  ________  _________  ___  ___       ________  ___  ___  ___  _________   :" << std::endl;
     std::wcout << L":|\\   ____\\|\\  \\|\\  \\|\\  \\|\\   ____\\|\\___   ___\\\\  \\|\\  \\     |\\   ____\\|\\  \\|\\  \\|\\  \\|\\___   ___\\ :" << std::endl;
     std::wcout << L":\\ \\  \\___|\\ \\  \\\\\\  \\ \\  \\ \\  \\___|\\|___ \\  \\_\\ \\  \\ \\  \\    \\ \\  \\___|\\ \\  \\\\\\  \\ \\  \\|___ \\  \\_| :" << std::endl;
@@ -50,15 +52,21 @@ void Game::StartGame() {
     std::wcout << L":   \\ \\_______\\ \\__\\ \\__\\ \\__\\____\\_\\  \\   \\ \\__\\ \\ \\__\\ \\_______\\____\\_\\  \\ \\__\\ \\__\\ \\__\\   \\ \\__\\:" << std::endl;
     std::wcout << L":    \\|_______|\\|__|\\|__|\\|__|\\_________\\   \\|__|  \\|__|\\|_______|\\_________\\|__|\\|__|\\|__|    \\|__|:" << std::endl;
     std::wcout << L":                            \\|_________|                        \\|_________|                       :" << std::endl;
-    std::wcout << L"В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·В·" << std::endl;
+    std::wcout << L"·························Игра называется Чистильщик································································" << std::endl;
 
 
-    Beep(392, 300);  // РЎРѕР»СЊ (G4)
-    Beep(440, 300);  // Р›СЏ (A4)
-    Beep(392, 300);  // РЎРѕР»СЊ (G4)
-    Beep(330, 600);  // РњРё (E4) вЂ” РґР»РёРЅРЅР°СЏ РЅРѕС‚Р°
 
-    auto startingMedals = MedalDatabase::GetRandomMedals(1);
+
+
+    Beep(392, 300);  // Соль (G4)
+    Beep(440, 300);  // Ля (A4)
+    Beep(392, 300);  // Соль (G4)
+    Beep(330, 600);  // Ми (E4) — длинная нота
+
+    auto startingMedals = MedalDatabase::GetCheapestMedals(10);
+    for (const auto& medal : startingMedals) {
+        player.AddMedal(medal);
+    }
 
     for (const auto& medal : startingMedals) {
         player.AddMedal(medal);
@@ -94,16 +102,6 @@ void Game::ShowLocations() const {
     }
 }
 
-void Game::ShowActionsIfChanged(const std::vector<std::wstring>& currentActions) {
-    if (currentActions != prevActions) {
-        std::wcout << L"\n=== Доступные действия ===\n";
-        for (size_t i = 0; i < currentActions.size(); ++i) {
-            std::wcout << i + 1 << L". " << currentActions[i] << L"\n";
-        }
-        prevActions = currentActions;
-    }
-}
-
 void Game::RenderUI() {
 
     if (skipUI) {
@@ -124,8 +122,11 @@ void Game::RenderUI() {
     PrintAnimated(L"Локация: " + currentLocation.name + L"\n");
 
     ConsoleColors::Reset();
-        std::vector<std::wstring> actions = { L"1. Выпить кофе и поес \n2. Царственно отдыхать \n3. Торговать \n4. Сменить локацию \n5. Поговорить с NPC\n6. Закончить день\n Что выбираешь?: " };
-        ShowActionsIfChanged(actions);
+        std::vector<std::wstring> actions = { L"Выпить кофе и поес \n2. Поспать в коробочке. \n3. Торговать \n 4. ПОКУПАТЬ \n 5. Сменить локацию \n6. Поговорить с NPC\n7. Закончить день\n Что выбираешь?: " };
+        std::wcout << L"\n=== Доступные действия ===\n";
+        for (size_t i = 0; i < actions.size(); ++i) {
+            std::wcout << i + 1 << L". " << actions[i] << L"\n";
+        }
 
     if (actionsToday > 9) {
         ConsoleColors::SetColor(ConsoleColors::RED);
@@ -159,11 +160,15 @@ void Game::HandlePlayerChoice(int choice) {
     case 1: player.EatFood(); skipUI = true; break;
     case 2: player.Rest(); skipUI = true; break;
     case 3: player.Trade(currentLocation);  break;
-    case 4: ChangeLocation(); skipUI = true; break;
-    case 5: InteractWithNPC(); skipUI = true; break;
-    case 6:
+    case 4:
+        player.BuyFromNPC(currentLocation);
+        break;
+    case 5: ChangeLocation(); skipUI = false; break;
+    case 6: InteractWithNPC(); skipUI = true; break;
+    case 7:
         NextDay();
         return; 
+
     default: std::wcout << L"Неверный выбор!\n";
     }
 
@@ -176,7 +181,7 @@ void Game::ApplyWeatherEffects() {
     WeatherType currentWeather = weather.GetCurrentWeather();
 
     if (currentWeather == WeatherType::Rainy || currentWeather == WeatherType::Stormy) {
-        player.fatigue += 5;
+        player.fatigue += 20;
     }
     else if (currentWeather == WeatherType::Sunny) {
         player.hunger += 5;
@@ -188,37 +193,43 @@ void Game::ApplyWeatherEffects() {
 }
 
 void Game::ProcessDailyPayments() {
-    // РЎРїРёСЃС‹РІР°РµРј Р–РљРҐ
+    std::random_device rd;
+    std::mt19937 rng(rd());
+
+    // Списываем ЖКХ
     player.money -= utilitiesCost;
-    std::wcout << L"РЎ РІР°СЃ СЃРЅСЏС‚Рѕ " << utilitiesCost << L" СЂСѓР±. Р·Р° Р–РљРҐ.\n";
+    std::wcout << L"С вас снято " << utilitiesCost << L" руб. за ЖКХ.\n";
 
-    // РџРµСЂРµРјРµС€РёРІР°РµРј РЅР°Р»РѕРіРё
-    std::shuffle(taxesList.begin(), taxesList.end(), rng);
+    // Выбираем случайный налог
+    if (!taxesList.empty()) {
+        std::uniform_int_distribution<int> dist(0, static_cast<int>(taxesList.size()) - 1);
+        const Tax& selectedTax = taxesList[dist(rng)];
 
-    // РЎРїРёСЃС‹РІР°РµРј РЅР°Р»РѕРіРё СЃ СЂР°РЅРґРѕРјРёР·Р°С†РёРµР№ СЃСѓРјРјС‹
-    std::uniform_real_distribution<> variation(0.8, 1.2);
-    for (auto& tax : taxesList) {
-        int finalAmount = static_cast<int>(tax.amount * variation(rng));
+        // Рандомизируем сумму налога
+        std::uniform_real_distribution<> variation(0.8, 1.2);
+        int finalAmount = static_cast<int>(selectedTax.amount * variation(rng));
+
         player.money -= finalAmount;
-        std::wcout << L"РЎ РІР°СЃ СЃРЅСЏС‚Рѕ " << finalAmount << L" СЂСѓР±. вЂ” " << tax.name << L".\n";
+        std::wcout << L"С вас снято " << finalAmount << L" руб. — " << selectedTax.name << L".\n";
     }
 
-    // РћРїР»Р°С‚Р° РєРІР°СЂС‚РёСЂС‹
+    // Оплата квартиры
     if (!rentPaid) {
         if (daysUntilEviction > 0) {
-            std::wcout << L"РЈ РІР°СЃ РµСЃС‚СЊ " << daysUntilEviction
-                << L" РґРµРЅСЊ, С‡С‚РѕР±С‹ Р·Р°РїР»Р°С‚РёС‚СЊ Р·Р° РєРІР°СЂС‚РёСЂСѓ: " << rentDue << L" СЂСѓР±.\n";
+            std::wcout << L"У вас есть " << daysUntilEviction
+                << L" день, чтобы заплатить за квартиру: " << rentDue << L" руб.\n";
             daysUntilEviction--;
         }
         else {
             rentDue = static_cast<int>(rentDue * (1.0 + rentIncreaseRate));
-            std::wcout << L"Р’С‹ РЅРµ Р·Р°РїР»Р°С‚РёР»Рё РІРѕРІСЂРµРјСЏ! Р”РѕР»Рі РІС‹СЂРѕСЃ РґРѕ " << rentDue << L" СЂСѓР±.\n";
+            std::wcout << L"Вы не заплатили вовремя! Долг вырос до " << rentDue << L" руб.\n";
         }
     }
 }
 
 void Game::NextDay() {
     weather.GenerateNewWeather();
+
 
     if (isOverworked) {
         player.fatigue += 30;
@@ -228,10 +239,21 @@ void Game::NextDay() {
         ConsoleColors::Reset();
         isOverworked = false;
     }
-       // Обычная логика дня
+
     actionsToday = 0;
     firstActionOfDay = true;
     ++day;
+    if (day > MAX_DAY) {
+        gameOver = true;
+        std::wcout << L"\nДемонстрация закончена. Подводим итоги...\n";
+        CheckFinalConditions();
+        player.ShowStats();
+        return;
+    }
+
+    actionsToday = 0;
+    firstActionOfDay = true;
+    rentPaid = false;
     player.hunger += 10;
     player.fatigue += 12; 
     
@@ -256,7 +278,6 @@ void Game::NextDay() {
     std::wcout << weather.GetFullDayDescription();
     ConsoleColors::Reset();
    
-    //player.ShowChangedStats();
     player.ShowStats();
     prevActions.clear();
 
@@ -328,6 +349,78 @@ void Game::HandleEvent() {
 }
 
 void Game::CheckFinalConditions() {
+
+    if (player.hunger >= 100 || player.fatigue >= 100) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::RED);
+        std::wcout << L"\nСмерть от одиночества: ты умер от голода или усталости.\n";
+        ConsoleColors::Reset();
+        return;
+    }
+
+    int rareMedalsCount = 0;
+    int historicalMedalsCount = 0;
+    for (const auto& m : player.inventory.GetItems()) {
+        if (m.tier == MedalTier::Unique || m.tier == MedalTier::Valuable)
+            rareMedalsCount++;
+        if (m.effectOnPlayer.find(L"историей") != std::wstring::npos)
+            historicalMedalsCount++;
+    }
+
+    if (player.money >= 100000 && rareMedalsCount >= 5 && player.reputation > 10) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::GREEN);
+        std::wcout << L"\nКнязь Химкинский: ты скупил все редкие медали и стал влиятельным персонажем.\n";
+        ConsoleColors::Reset();
+        return;
+    }
+
+    if (historicalMedalsCount >= 4 && player.reputation > 20 /* высокий */) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::MAGENTA);
+        std::wcout << L"\nШиза ветерана: ты так вжился в роль, что сам поверил, что штурмовал Кенигсберг.\n";
+        ConsoleColors::Reset();
+        return;
+    }
+
+    for (const auto& m : player.inventory.GetItems()) {
+        if (m.name.find(L"Орден Мужества") != std::wstring::npos) {
+            if (rand() % 100 < 50) { // 50% шанс
+                gameOver = true;
+                ConsoleColors::SetColor(ConsoleColors::YELLOW);
+                std::wcout << L"\nЗолотой обмен: ветеран предлагает тебе редкий орден в обмен на паспорт.\n";
+                ConsoleColors::Reset();
+                return;
+            }
+        }
+    }
+
+    if (day >= 30 && player.reputation < 0 && player.money < 500 && player.hunger > 80) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::RED);
+        std::wcout << L"\nСмерть от одиночества: никто не пришёл на похороны, коллекция осталась в сумке.\n";
+        ConsoleColors::Reset();
+        return;
+    }
+
+    if (player.reputation > 15 && historicalMedalsCount >= 2) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::CYAN);
+        std::wcout << L"\nЖивой музей: вместе с другими торговцами ты создаёшь музей 'Памяти и Перепродажи'.\n";
+        ConsoleColors::Reset();
+        return;
+    }
+
+    if (day >= 15) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::WHITE);
+        std::wcout << L"\nТы — медаль: экран гаснет, потом вспышка. Ты видишь себя… на прилавке.\n";
+        ConsoleColors::Reset();
+        return;
+    }
+
+        
+
     if (player.hunger >= 100 || player.fatigue >= 100) {
         gameOver = true;
         ConsoleColors::SetColor(ConsoleColors::RED);
@@ -335,7 +428,7 @@ void Game::CheckFinalConditions() {
         ConsoleColors::Reset();
     }
 
-    if (player.money >= 100000) {
+    if (player.money >= 1000000) {
         gameOver = true;
         ConsoleColors::SetColor(ConsoleColors::GREEN);
         std::wcout << L"\nТы разбогател на медалях. Уважение в подъезде гарантировано.\n";
@@ -356,6 +449,23 @@ void Game::CheckFinalConditions() {
         ConsoleColors::Reset();
     }
 
+    // Новое условие: ограничение по дням для демонстрации
+    if (day > 10) {
+        gameOver = true;
+        ConsoleColors::SetColor(ConsoleColors::CYAN);
+        std::wcout << L"\nДемонстрация закончена на 10-м дне. Подводим итоги игры:\n";
+        ConsoleColors::Reset();
+
+        // Подробные итоги
+        std::wcout << L"День: " << day << L"\n";
+        std::wcout << L"Деньги: " << player.money << L"\n";
+        std::wcout << L"Репутация: " << player.reputation << L"\n";
+        std::wcout << L"Голод: " << player.hunger << L"\n";
+        std::wcout << L"Усталость: " << player.fatigue << L"\n";
+        std::wcout << L"Инвентарь:\n";
+        player.ShowInventory();
+        std::wcout << L"============================\n";
+    }
 }
 
 void Game::ShowNPCs() const {

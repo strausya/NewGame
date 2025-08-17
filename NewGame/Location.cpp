@@ -46,7 +46,53 @@ void Location::InitializeNPCs() {
         npcs.emplace_back(L"Ваня 'Школьник'", L"Подросток, сбежавший с уроков, торгует найденным на чердаке", NPCType::HOBBYIST, 0.1f, 0.5f, 700);
         break;
     }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    for (auto& npc : npcs) {
+        int medalsCount = 0;
+
+        switch (npc.type) {
+        case NPCType::COLLECTOR: {
+            std::uniform_int_distribution<> dist(5, 8);
+            medalsCount = dist(gen);
+            break;
+        }
+        case NPCType::VETERAN: {
+            std::uniform_int_distribution<> dist(1, 2);
+            medalsCount = dist(gen);
+            break;
+        }
+        case NPCType::TRADER: {
+            std::uniform_int_distribution<> dist(3, 5);
+            medalsCount = dist(gen);
+            break;
+        }
+        case NPCType::HOBBYIST: {
+            std::uniform_int_distribution<> dist(1, 3);
+            medalsCount = dist(gen);
+            break;
+        }
+        }
+
+        auto medals = MedalDatabase::GetRandomMedals(medalsCount);
+
+        for (auto& medal : medals) {
+            if (npc.type == NPCType::TRADER) {
+                std::uniform_int_distribution<> fakeChance(0, 99);
+                if (fakeChance(gen) < 30) {
+                    medal.isFake = true;
+                }
+            }
+            if (npc.type == NPCType::VETERAN) {
+                medal.tier = MedalTier::Unique;
+            }
+            npc.medalsForSale.push_back(medal);
+        }
+    }
 }
+
 Location::Location(LocationType locType) : type(locType) {
     switch (locType) {
     case LocationType::BaldRock:
@@ -127,25 +173,49 @@ std::wstring Location::GetRandomEvent() const {
     static std::random_device rd;
     static std::mt19937 gen(rd());
 
-    static std::map<LocationType, std::vector<std::wstring>> events = {{
-        LocationType::BaldRock, {
+    static std::map<LocationType, std::vector<std::wstring>> events = {
+        {LocationType::BaldRock, {
             L"Дедушка рассказал тебе историю из своей молодости",
             L"Нашёл старую медаль в кармане",
-            L"Кто-то предложил тебе чай"
+            L"Кто-то предложил тебе чай",
+            L"Случайно услышал спор о цене на редкую медаль",
+            L"Пожилой мужчина похвалил твоё чувство юмора",
+            L"Старушка показала фотографию своего мужа в молодости",
+            L"Мимо прошёл человек с мешком непонятных металлических предметов",
+            L"Ты увидел объявление о продаже 'оригинальных' медалей"
         }},
         {LocationType::GoldenSaffron, {
             L"В кафе подавали бесплатный чай",
-            L"Ты встретил богатого коллекционера"
+            L"Ты встретил богатого коллекционера",
+            L"Бариста спросил, коллекционируешь ли ты что-то",
+            L"В углу сидел мужчина, рассматривающий медаль под лупой",
+            L"Повар пожаловался на рост цен на специи",
+            L"Официант намекнул, что видел 'такую же медаль' у соседа",
+            L"Музыкант в углу играл мелодию времён Империи",
+            L"Тебе предложили обменять ложку сахара на антикварную пуговицу"
         }},
         {LocationType::MegaCollector, {
             L"На аукционе сегодня скидки",
-            L"Коллекционер в хорошем настроении"
+            L"Коллекционер в хорошем настроении",
+            L"Кто-то продал подделку и был выведен охраной",
+            L"Ты заметил медаль, похожую на одну из своих",
+            L"Крупный торговец спорил с оценщиком",
+            L"Случайно услышал секретную информацию о грядущей распродаже",
+            L"Один из продавцов предложил тебе 'схему обогащения'",
+            L"Оценщик пригласил тебя на частный просмотр коллекции"
         }},
         {LocationType::Stakha, {
             L"Кто-то оставил недопитый чай",
-            L"Местные рассказывают байки"
+            L"Местные рассказывают байки",
+            L"Старый друг предложил обменяться вещами",
+            L"На стене висит объявление о пропавшей медали",
+            L"Ты заметил подозрительного человека с полным рюкзаком",
+            L"Тебя попросили оценить медаль, но она оказалась игрушечной",
+            L"Женщина в платке предложила тебе 'очень выгодную сделку'",
+            L"Ты увидел, как двое спорят о подлинности ордена"
         }}
     };
+
     const auto it = events.find(type);
     if (it != events.end()) {
         const auto& locEvents = it->second;

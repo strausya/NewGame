@@ -28,8 +28,25 @@ private:
     bool firstActionOfDay;
     static void PrintAnimated(const std::wstring& text, int delayMs = 1);
     std::vector<std::wstring> prevActions; // предыдущее меню действий
-    void ShowActionsIfChanged(const std::vector<std::wstring>& currentActions);
     bool skipUI = false;
+    int rentDue = 55000;
+    int daysUntilEviction = 1;
+    double rentIncreaseRate = 0.01;
+    int utilitiesCost = 5000;
+    int taxesCost = 2000;
+    bool rentPaid = false;
+    static const int MAX_DAY = 10; // ограничение на демонстрацию
+
+
+    struct Tax {
+    std::wstring name;
+    int amount;
+};
+
+std::vector<Tax> taxesList;
+void InitTaxes();
+void ProcessDailyPayments();
+
 
 public:
     Game();
@@ -40,7 +57,6 @@ public:
     bool IsGameOver() const { return gameOver; }
     void ChangeLocation();
     void ShowLocations() const;
-    //void ConfirmNextDay();
     void HandleEvent();
     void ShowEventMenu();
     void ShowNPCs() const;

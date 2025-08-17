@@ -39,25 +39,29 @@ const Medal* MedalDatabase::FindByName(const std::wstring& name) {
             return &medal;
     }
     return nullptr;
+
+}
+
+std::vector<Medal> MedalDatabase::GetCheapestMedals(int count) {
+    std::vector<Medal> sorted = medals; // копия
+    std::sort(sorted.begin(), sorted.end(), [](const Medal& a, const Medal& b) {
+        return a.minPrice < b.minPrice;
+        });
+    if (count > sorted.size()) count = static_cast<int>(sorted.size());
+    return std::vector<Medal>(sorted.begin(), sorted.begin() + count);
 }
 
 std::vector<Medal> MedalDatabase::GetRandomMedals(int count) {
+    const auto& all = GetAllMedals();
     std::vector<Medal> result;
-    const auto& allMedals = GetAllMedals();
+    if (all.empty()) return result;
 
-    if (allMedals.empty()) return result;
-
-    // Создаем копию для перемешивания
-    std::vector<Medal> shuffled = allMedals;
-
-    // Перемешиваем медали
     std::random_device rd;
     std::mt19937 g(rd());
-    std::shuffle(shuffled.begin(), shuffled.end(), g);
 
-    // Берем первые 'count' медалей
-    int take = std::min(count, (int)shuffled.size());
-    result.assign(shuffled.begin(), shuffled.begin() + take);
-
+    std::uniform_int_distribution<int> dist(0, static_cast<int>(medals.size()) - 1);
+    for (int i = 0; i < count; ++i) {
+        result.push_back(all[dist(g)]);
+    }
     return result;
 }
