@@ -448,24 +448,6 @@ void Game::CheckFinalConditions() {
         std::wcout << L"\nТы заслужил уважение среди коллекционеров! Теперь ты признанный эксперт.\n";
         ConsoleColors::Reset();
     }
-
-    // Новое условие: ограничение по дням для демонстрации
-    if (day > 10) {
-        gameOver = true;
-        ConsoleColors::SetColor(ConsoleColors::CYAN);
-        std::wcout << L"\nДемонстрация закончена на 10-м дне. Подводим итоги игры:\n";
-        ConsoleColors::Reset();
-
-        // Подробные итоги
-        std::wcout << L"День: " << day << L"\n";
-        std::wcout << L"Деньги: " << player.money << L"\n";
-        std::wcout << L"Репутация: " << player.reputation << L"\n";
-        std::wcout << L"Голод: " << player.hunger << L"\n";
-        std::wcout << L"Усталость: " << player.fatigue << L"\n";
-        std::wcout << L"Инвентарь:\n";
-        player.ShowInventory();
-        std::wcout << L"============================\n";
-    }
 }
 
 void Game::ShowNPCs() const {
