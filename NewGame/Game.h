@@ -4,6 +4,7 @@
 #include "Inventory.h"
 #include "MedalDatabase.h"
 #include "GameEvents.h"
+#include "SaveSystem.h"
 #include "Weather.h"
 #include <thread>
 #include <chrono>
@@ -36,7 +37,7 @@ private:
     int taxesCost = 2000;
     bool rentPaid = false;
     static const int MAX_DAY = 10; // ограничение на демонстрацию
-
+    void CheckFinalConditions();
 
     struct Tax {
     std::wstring name;
@@ -62,6 +63,10 @@ public:
     void ShowNPCs() const;
     void InteractWithNPC();
 
-private:
-    void CheckFinalConditions();
+    Player& GetPlayer() { return player; }
+    const Player& GetPlayer() const { return player; }
+
+    int GetDay() const { return day; }
+    void SetDay(int d) { day = d; }
+
 };

@@ -33,4 +33,6 @@ public:
     void ShowChangedStats();
     void InitPrevStats();
     void BuyFromNPC(Location& currentLocation);
+    void ApplyMedalEffects(const Medal& medal);
+
 };

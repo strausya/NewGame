@@ -9,6 +9,20 @@ enum class MedalTier {
     Unique
 };
 
+enum class MedalEffect {
+    None,
+    ReputationBoost,
+    HungerReduction,
+    FatigueRecovery,
+    BargainBonus,
+    MoneyBonus,
+    UnlockQuest,
+    LocationInterest,
+    AvoidPolice,
+    RespectGroup,
+    StatChange
+};
+
 struct Medal {
     std::wstring name;
     std::wstring condition;
@@ -18,6 +32,8 @@ struct Medal {
     bool isFake = false;
     std::wstring effectOnPlayer;
     int baseCost = 100;
+    MedalEffect effect = MedalEffect::None;
+    int effectValue = 0;
 
     Medal(
         const std::wstring& name,
@@ -27,7 +43,10 @@ struct Medal {
         MedalTier tier,
         bool isFake,
         const std::wstring& effectOnPlayer,
-        int baseCost = 100
+        int baseCost = 100,
+        MedalEffect effect = MedalEffect::None,
+        int effectValue = 0
     );
+
     int GetMarketPrice() const;
 };

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{071a24f6-5873-4d97-b855-3aaabbd63b8a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NewGame.cpp">
@@ -46,6 +49,9 @@
       <Filter>Resource Files</Filter>
     </ClCompile>
     <ClCompile Include="ConsoleColors.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveSystem.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -82,6 +88,12 @@
     </ClInclude>
     <ClInclude Include="Weather.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\i-gla\Downloads\json.hpp">
+      <Filter>libs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

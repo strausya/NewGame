@@ -8,9 +8,21 @@ Medal::Medal(
     MedalTier tier,
     bool isFake,
     const std::wstring& effectOnPlayer,
-    int baseCost
-) : name(name), condition(condition), minPrice(minPrice), maxPrice(maxPrice),
-tier(tier), isFake(isFake), effectOnPlayer(effectOnPlayer), baseCost(baseCost) {
+    int baseCost,
+    MedalEffect effect,
+    int effectValue
+)
+    : name(name),
+    condition(condition),
+    minPrice(minPrice),
+    maxPrice(maxPrice),
+    tier(tier),
+    isFake(isFake),
+    effectOnPlayer(effectOnPlayer),
+    baseCost(baseCost),
+    effect(effect),
+    effectValue(effectValue)
+{
 }
 
 int Medal::GetMarketPrice() const {

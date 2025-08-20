@@ -187,7 +187,6 @@ void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
             continue;
         }
 
-        //BargainTactic tactic = static_cast<BargainTactic>(tacticChoice - 1);
         float successChance = npc.CalculateTacticSuccessChance(tactic, *this);
 
         // Вывод реплики игрока
@@ -270,6 +269,7 @@ void Player::Rest() {
 
 void Player::AddMedal(const Medal& medal) {
     inventory.Add(medal);
+    ApplyMedalEffects(medal);
 }
 
 void Player::ShowInventory() const {
@@ -357,4 +357,31 @@ void Player::ShowStats() const {
 
     std::wcout << L"└───────────────────────────────────────┘\n";
     ConsoleColors::Reset();
+}
+
+void Player::ApplyMedalEffects(const Medal& medal) {
+    switch (medal.effect) {
+    case MedalEffect::ReputationBoost:
+        reputation += medal.effectValue;
+        std::wcout << L"Репутация выросла на " << medal.effectValue << L"\n";
+        break;
+    case MedalEffect::HungerReduction:
+        hunger = std::max(0, hunger - medal.effectValue);
+        std::wcout << L"Сытость улучшена на " << medal.effectValue << L"\n";
+        break;
+    case MedalEffect::FatigueRecovery:
+        fatigue = std::max(0, fatigue - medal.effectValue);
+        std::wcout << L"Усталость уменьшена на " << medal.effectValue << L"\n";
+        break;
+    case MedalEffect::BargainBonus:
+        reputation += medal.effectValue / 2;
+        std::wcout << L"Торговые навыки улучшены!\n";
+        break;
+    case MedalEffect::MoneyBonus:
+        money += medal.effectValue;
+        std::wcout << L"Получен бонус: +" << medal.effectValue << L"₽\n";
+        break;
+    default:
+        break;
+    }
 }

@@ -55,23 +55,16 @@ void Game::StartGame() {
     std::wcout << L"·························Игра называется Чистильщик································································" << std::endl;
 
 
-
-
-
     Beep(392, 300);  // Соль (G4)
     Beep(440, 300);  // Ля (A4)
     Beep(392, 300);  // Соль (G4)
     Beep(330, 600);  // Ми (E4) — длинная нота
 
-    auto startingMedals = MedalDatabase::GetCheapestMedals(10);
+    auto startingMedals = MedalDatabase::GetCheapestMedals(5);
     for (const auto& medal : startingMedals) {
         player.AddMedal(medal);
     }
-
-    for (const auto& medal : startingMedals) {
-        player.AddMedal(medal);
-      }
-
+    
     PrintAnimated(L"Ты в Химках. У тебя нет денег. Только медали и отчаяние.\n");
     std::wcin.ignore((std::numeric_limits<std::streamsize>::max)(), L'\n');
     PrintAnimated(L"Нажал Enter, молодец, догадался. Уровень сложности: \n !!!!!!Ультра Хард!!!!!\n");
@@ -115,24 +108,17 @@ void Game::RenderUI() {
     std::wcout << L"=== День " << day << L" ===\n";
     std::wcout << weather.GetWeatherDescription() << L"\n";
     ConsoleColors::Reset();
-    //player.ShowChangedStats();
     player.ShowStats();
 
     ConsoleColors::SetColor(ConsoleColors::GREEN);
     PrintAnimated(L"Локация: " + currentLocation.name + L"\n");
 
     ConsoleColors::Reset();
-        std::vector<std::wstring> actions = { L"Выпить кофе и поес \n2. Поспать в коробочке. \n3. Торговать \n 4. ПОКУПАТЬ \n 5. Сменить локацию \n6. Поговорить с NPC\n7. Закончить день\n Что выбираешь?: " };
+    std::vector<std::wstring> actions = { L"Энергетик \n2. Поспать. \n3. Торговать \n 4. ПОКУПАТЬ \n 5. Сменить локацию \n6. Поговорить с NPC\n7. Закончить день\n 8.Сохранить игру.//9. Загрузить игру \n \n Что выбираешь?: " };
         std::wcout << L"\n=== Доступные действия ===\n";
         for (size_t i = 0; i < actions.size(); ++i) {
             std::wcout << i + 1 << L". " << actions[i] << L"\n";
         }
-
-    if (actionsToday > 9) {
-        ConsoleColors::SetColor(ConsoleColors::RED);
-        std::wcout << L"Внимание! Следующее действие вызовет перегруз!\n";
-        ConsoleColors::Reset();
-    }
 
 }
 
@@ -167,9 +153,23 @@ void Game::HandlePlayerChoice(int choice) {
     case 6: InteractWithNPC(); skipUI = true; break;
     case 7:
         NextDay();
-        return; 
+        break; 
+    case 8: {
+        SaveSystem::Save(*this);
+        std::wcout << L"Игра сохранена!\n";
+        break;
+    }
+    case 9: {
+        if (SaveSystem::Load(*this)) {
+            std::wcout << L"Игра загружена!\n";
+        }
+        else {
+            std::wcout << L"Ошибка: сохранение не найдено.\n";
+        }
+        break;
+    }
 
-    default: std::wcout << L"Неверный выбор!\n";
+    default: std::wcout << L"Не туда тыкнул, либо баг какой нибудь, потыкай там!\n";
     }
 
     if (!eventActive && actionsToday >= 5) {
