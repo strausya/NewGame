@@ -54,6 +54,9 @@
     <ClCompile Include="SaveSystem.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="DialogueSystem.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Player.h">
@@ -94,6 +97,9 @@
     </ClInclude>
     <ClInclude Include="C:\Users\i-gla\Downloads\json.hpp">
       <Filter>libs</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogueSystem.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConsoleColors.cpp" />
+    <ClCompile Include="DialogueSystem.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Location.cpp" />
@@ -143,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="C:\Users\i-gla\Downloads\json.hpp" />
     <ClInclude Include="ConsoleColors.h" />
+    <ClInclude Include="DialogueSystem.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="Inventory.h" />

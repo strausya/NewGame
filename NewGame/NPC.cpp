@@ -197,7 +197,7 @@ std::wstring NPC::GetDialogResponse(BargainTactic tactic, bool success) {
     return responses[rand() % responses.size()];
 }
 
-float NPC::CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) {
+float NPC::CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) const {
     float baseChance = 0.3f;
 
     switch (tactic) {

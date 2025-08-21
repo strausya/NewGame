@@ -1,4 +1,5 @@
 ﻿#include "Player.h"
+#include "DialogueSystem.h"
 #include "NPC.h"
 #include "ConsoleColors.h"
 #include "MedalManager.h"
@@ -6,98 +7,75 @@
 #include "Location.h"
 #include <iostream>
 #include <iomanip>
+#include <chrono>
 #include <random>
 
+static int ReadIntSafe() {
+    int v = 0;
+    if (!(std::wcin >> v)) {
+        std::wcin.clear();
+        std::wstring tmp;
+        std::getline(std::wcin, tmp);
+        return 0;
+    }
+    return v;
+}
+
 void Player::Trade(Location& currentLocation) {
-    float weatherModifier = 1.0f;
+    if (inventory.IsEmpty()) {
+        std::wcout << L"У тебя нет медалей для продажи.\n";
+        return;
+    }
 
-        if (this->inventory.IsEmpty()) {
-            std::wcout << L"У тебя нет медалей для продажи.\n";
-            return;
-        }
+    std::wcout << L"Вы решили торговать с NPC.\n";
 
-        this->ShowInventory();
+    // Выбор NPC
+    if (currentLocation.npcs.empty()) {
+        std::wcout << L"В этой локации нет никого для торговли.\n";
+        return;
+    }
 
-        // Выбор медали
-        std::wcout << L"Выбери медаль для продажи (1-" << this->inventory.Size() << "): ";
-        size_t choice;
-        std::wcin >> choice;
-        Medal selectedMedal = this->inventory.GetMedal(choice - 1);
+    std::wcout << L"Выберите NPC для торговли:\n";
+    for (size_t i = 0; i < currentLocation.npcs.size(); ++i) {
+        std::wcout << i + 1 << L") " << currentLocation.npcs[i].name << L"\n";
+    }
 
+    int npcChoice = ReadIntSafe();
+    if (npcChoice < 1 || npcChoice > static_cast<int>(currentLocation.npcs.size())) {
+        std::wcout << L"Неверный выбор.\n";
+        return;
+    }
 
-        if (choice < 1 || choice > this->inventory.Size()) {
-            std::wcout << L"Неверный выбор!\n";
-            return;
-        }
+    NPC& npc = currentLocation.npcs[npcChoice - 1];
 
-        MedalManager manager;
+    // Выбор медали
+    std::wcout << L"Ваши медали:\n";
+    for (size_t i = 0; i < inventory.Size(); ++i) {
+        const Medal& m = inventory.GetMedal(i);
+        std::wcout << i + 1 << L") " << m.name << L" (" << m.condition << L") "
+            << L"Цена: " << m.maxPrice << L"₽\n";
+    }
 
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, 99);
+    int medalChoice = 0;
+    std::wcout << L"Выберите медаль для продажи (1-" << inventory.Size() << L"): ";
+    medalChoice = ReadIntSafe();
+    if (medalChoice < 1 || medalChoice > static_cast<int>(inventory.Size())) {
+        std::wcout << L"Неверный выбор медали.\n";
+        return;
+    }
 
-        bool buyerIsExpert = (dis(gen) < currentLocation.fakeDetectionChance * 100);
-        int basePrice = manager.GetMarketValue(selectedMedal, this->reputation, buyerIsExpert);
-        int finalPrice = static_cast<int>(basePrice * currentLocation.priceModifier);
+    size_t medalIndex = medalChoice - 1;
+    Medal selectedMedal = inventory.GetMedal(medalIndex);
 
-        // Выбор NPC для торговли (если есть)
-        if (!currentLocation.npcs.empty()) {
-            NPC& npc = currentLocation.npcs[rand() % currentLocation.npcs.size()];
-            std::wcout << L"\n" << npc.name << L" рассматривает твою медаль...\n";
-            std::wcout << L"Он предлагает " << basePrice << L" руб. Будешь торговаться? (1-Да, 0-Нет): ";
+    // Начальная цена для диалога
+    int startingPrice = selectedMedal.maxPrice;
 
-            int bargainChoice;
-            std::wcin >> bargainChoice;
+    // Запуск многоходового диалога
+    DialogueSystem::StartMultiRoundDialogue(*this, npc, medalIndex, startingPrice);
 
-            if (bargainChoice == 1) {
-                StartBargainDialogue(npc, selectedMedal, finalPrice);
-                return;
-            }
-        }
-
-        // Дополнительный торг на Стахе
-        if (currentLocation.type == LocationType::Stakha && rand() % 100 < 30) {
-            finalPrice += static_cast<int>(finalPrice * 0.5f);
-            std::wcout << L"Ты удачно выпросил больше денег!\n";
-        }
-
-        // Применяем погодный модификатор
-        finalPrice = static_cast<int>(finalPrice * weatherModifier);
-
-        if (weatherModifier != 1.0f) {
-            std::wcout << L"(Погода повлияла на цену: "
-                << (weatherModifier > 1.0f ? L"+" : L"")
-                << (weatherModifier - 1.0f) * 100 << L"%)\n";
-        }
-
-        // Проверка на фейк
-        if (buyerIsExpert && selectedMedal.isFake) {
-            std::wcout << L"Покупатель распознал подделку! Медаль конфискована.\n";
-            this->inventory.RemoveByIndex(choice - 1);
-            this->reputation -= 10;
-            return;
-        }
-
-        // Продажа
-        this->money += finalPrice;
-        this->inventory.RemoveByIndex(choice - 1);
-
-        std::wcout << L"Ты продал " << selectedMedal.name << L" за " << finalPrice << L" рублей.\n";
-        std::wcout << L"Теперь у тебя " << this->money << L" рублей.\n";
-
-        // Репутация
-        if (finalPrice > selectedMedal.minPrice * 2) {
-            this->reputation += 5;
-            ConsoleColors::SetColor(ConsoleColors::GREEN);
-            std::wcout << L"Ты удачно поторговался! Репутация +5 (" << this->reputation << L").\n";
-            ConsoleColors::Reset();
-        }
-        else if (finalPrice < selectedMedal.minPrice * 0.8) {
-            this->reputation -= 2;
-            ConsoleColors::SetColor(ConsoleColors::RED);
-            std::wcout << L"Ты продешевил! Репутация -2 (" << this->reputation << L").\n";
-            ConsoleColors::Reset();
-        }
+    // После диалога показываем финальные результаты
+    std::wcout << L"\nВаш текущий баланс: " << money << L"₽\n";
+    std::wcout << L"Репутация: " << reputation << L"\n";
 }
 
 void Player::BuyFromNPC(Location& currentLocation) {
@@ -106,18 +84,20 @@ void Player::BuyFromNPC(Location& currentLocation) {
         return;
     }
 
+    std::wcout << L"Вы решили торговать с NPC.\n";
+
     // Выбор NPC
     std::wcout << L"Выберите NPC для покупки:\n";
     for (size_t i = 0; i < currentLocation.npcs.size(); ++i) {
         std::wcout << i + 1 << L". " << currentLocation.npcs[i].name << L"\n";
     }
 
-    size_t npcChoice;
-    std::wcin >> npcChoice;
-    if (npcChoice < 1 || npcChoice > currentLocation.npcs.size()) {
+    int npcChoice = ReadIntSafe();
+    if (npcChoice < 1 || npcChoice > static_cast<int>(currentLocation.npcs.size())) {
         std::wcout << L"Неверный выбор.\n";
         return;
     }
+
     NPC& npc = currentLocation.npcs[npcChoice - 1];
 
     if (npc.medalsForSale.empty()) {
@@ -134,27 +114,29 @@ void Player::BuyFromNPC(Location& currentLocation) {
             << npc.medalsForSale[i].maxPrice << L" руб.\n";
     }
 
-    size_t medalChoice;
-    std::wcin >> medalChoice;
-    if (medalChoice < 1 || medalChoice > npc.medalsForSale.size()) {
+    int medalChoice = ReadIntSafe();
+    if (medalChoice < 1 || medalChoice > static_cast<int>(npc.medalsForSale.size())) {
         std::wcout << L"Неверный выбор.\n";
         return;
     }
 
-    Medal chosenMedal = npc.medalsForSale[medalChoice - 1];
-    MedalManager manager;
-    int price = manager.GetMarketValue(chosenMedal, reputation, false);
+    size_t medalIndex = medalChoice - 1;
+    Medal& selectedMedal = npc.medalsForSale[medalIndex];
+    int startingPrice = selectedMedal.maxPrice;
 
-    std::wcout << L"Цена: " << price << L" руб. Купить? (1 - да, 0 - нет): ";
-    int confirm;
-    std::wcin >> confirm;
-    if (confirm != 1) return;
+    // Запуск многоходового диалога
+    DialogueSystem::StartMultiRoundDialogue(*this, npc, medalIndex, startingPrice);
+
+    // После диалога проверяем деньги и покупку
+    MedalManager manager;
+    int price = manager.GetMarketValue(selectedMedal, reputation, false);
 
     if (money >= price) {
         money -= price;
-        inventory.Add(chosenMedal);
-        npc.medalsForSale.erase(npc.medalsForSale.begin() + (medalChoice - 1));
+        inventory.Add(selectedMedal);
+        npc.medalsForSale.erase(npc.medalsForSale.begin() + medalIndex);
         std::wcout << L"Вы купили медаль!\n";
+        std::wcout << L"Баланс: " << money << L"₽\n";
     }
     else {
         std::wcout << L"У вас недостаточно денег.\n";
@@ -165,21 +147,20 @@ void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
     std::wcout << L"\n=== ТОРГ ===\n";
     std::wcout << L"Текущая цена: " << currentPrice << L" руб.\n\n";
 
+    static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    static std::mt19937 generator(seed);
+
     while (true) {
         std::wcout << L"Выбери тактику:\n";
-        std::wcout << L"1. Блеф (шанс: " << npc.CalculateTacticSuccessChance(BargainTactic::BLUFF, *this) * 100 << L"%)\n";
-        std::wcout << L"2. Лесть (шанс: " << npc.CalculateTacticSuccessChance(BargainTactic::FLATTERY, *this) * 100 << L"%)\n";
-        std::wcout << L"3. Угроза (шанс: " << npc.CalculateTacticSuccessChance(BargainTactic::THREAT, *this) * 100 << L"%)\n";
-        std::wcout << L"4. Разумные доводы (шанс: " << npc.CalculateTacticSuccessChance(BargainTactic::REASON, *this) * 100 << L"%)\n";
-        std::wcout << L"5. Терпение (шанс: " << npc.CalculateTacticSuccessChance(BargainTactic::PATIENCE, *this) * 100 << L"%)\n";
+        std::wcout << L"1. Блеф\n";
+        std::wcout << L"2. Лесть\n";
+        std::wcout << L"3. Угроза\n";
+        std::wcout << L"4. Разумные доводы\n";
+        std::wcout << L"5. Терпение\n";
         std::wcout << L"0. Принять цену\n";
         std::wcout << L"Выбор: ";
 
-        int tacticChoice;
-        std::wcin >> tacticChoice;
-        
-        BargainTactic tactic = static_cast<BargainTactic>(tacticChoice - 1);
-
+        int tacticChoice = ReadIntSafe();
 
         if (tacticChoice == 0) break;
         if (tacticChoice < 1 || tacticChoice > 5) {
@@ -187,48 +168,39 @@ void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
             continue;
         }
 
+        BargainTactic tactic = static_cast<BargainTactic>(tacticChoice - 1);
         float successChance = npc.CalculateTacticSuccessChance(tactic, *this);
 
         // Вывод реплики игрока
         std::wcout << L"\nТы: " << npc.GetDialogResponse(tactic, false) << L"\n";
 
-        // Проверка успеха
-        bool success = (rand() / static_cast<float>(RAND_MAX)) < successChance;
+        // Простая проверка успеха
+        int randomValue = generator() % 100;
+        bool success = (randomValue < (successChance * 100));
 
         // Ответ NPC
         std::wcout << npc.name << L": " << npc.GetDialogResponse(tactic, success) << L"\n";
 
         if (success) {
             // Успешный торг
-            float priceModifier = 1.0f + 0.1f * (1.0f - successChance);
-            currentPrice = static_cast<int>(currentPrice * priceModifier);
-            std::wcout << L"Новая цена: " << currentPrice << L" руб. (+" << (priceModifier - 1.0f) * 100 << L"%)\n";
-
-            // Обновление репутации
-            if (tactic == BargainTactic::THREAT) {
-                this->reputation -= 3;
-            }
-            else if (tactic == BargainTactic::FLATTERY) {
-                this->reputation += 1;
-            }
+            currentPrice = static_cast<int>(currentPrice * 0.9f); // 10% скидка
+            std::wcout << L"Новая цена: " << currentPrice << L" руб. (-10%)\n";
+            reputation += 1;
         }
         else {
-            // Неудачный торг
-            this->reputation -= 1;
+            reputation -= 1;
             std::wcout << L"Цена осталась прежней: " << currentPrice << L" руб.\n";
         }
 
-        std::wcout << L"Твоя репутация теперь: " << this->reputation << L"\n\n";
+        std::wcout << L"Твоя репутация теперь: " << reputation << L"\n\n";
     }
 
     // Финальное решение
     std::wcout << L"\nПринять предложение " << currentPrice << L" руб.? (1-Да, 0-Нет): ";
-    int finalChoice;
-    std::wcin >> finalChoice;
+    int finalChoice = ReadIntSafe();
 
     if (finalChoice == 1) {
-        this->money += currentPrice;
-        // Inventory removal will be handled in Trade function
+        money += currentPrice;
         std::wcout << L"Сделка заключена!\n";
     }
     else {
@@ -237,9 +209,9 @@ void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
 }
 
 void Player::EatFood() {
-    if (money >= 50) {
+    if (money >= 100) {
         money -= 50;
-        hunger -= 30;
+        hunger -= 50;
         if (hunger < 0) hunger = 0;
         std::wcout << L"Ты поел чебурек с вокзала.\n";
     }
@@ -249,21 +221,20 @@ void Player::EatFood() {
 }
 
 void Player::Rest() {
-    if (money >= 20) { // Добавляем небольшую стоимость отдыха
+    if (money >= 20) { 
         money -= 20;
         fatigue -= 40;
         if (fatigue < 0) fatigue = 0;
         std::wcout << L"Ты снял комнату в хостеле и хорошо отдохнул.\n";
     }
     else {
-        fatigue -= 20; // Бесплатный отдых менее эффективен
+        fatigue -= 20;
         if (fatigue < 0) fatigue = 0;
         std::wcout << L"Ты поспал на лавке. Сон тревожный, но помог.\n";
     }
 
     if (fatigue < 0) fatigue = 0;
 
-    // Ограничение максимума усталости
     if (fatigue > 100) fatigue = 100;
 }
 
@@ -280,21 +251,21 @@ void Player::ShowInventory() const {
 
     std::wcout << L"=== Твой инвентарь ===\n";
     for (size_t i = 0; i < inventory.Size(); ++i) {
-        Medal m = inventory.GetMedal(i);
+        const Medal m = inventory.GetMedal(i);
         std::wcout << i + 1 << L". " << m.name
             << L" (" << m.condition << L")"
             << (m.isFake ? L" [Фейк]" : L"") << L"\n";
     }
 }
 
-void Player::InitPrevStats() {
+/*void Player::InitPrevStats() {
     prevMoney = money;
     prevHunger = hunger;
     prevFatigue = fatigue;
     prevReputation = reputation;
-}
+}*/
 
-void Player::ShowChangedStats() {
+/*void Player::ShowChangedStats() {
     if (money != prevMoney) {
         std::wcout << L"Деньги: " << money << L" руб.\n";
         prevMoney = money;
@@ -311,7 +282,7 @@ void Player::ShowChangedStats() {
         std::wcout << L"Репутация: " << reputation << L"\n";
         prevReputation = reputation;
     }
-}
+}*/
 
 void Player::ShowStats() const {
     ConsoleColors::SetColor(ConsoleColors::YELLOW);

@@ -31,8 +31,8 @@ private:
    public:
     std::wstring name;
     std::wstring backstory;
-    float bargainDifficulty; // Сложность торга (0-1)
-    float gullibility; // Вероятность поверить обману (0-1)
+    float bargainDifficulty;
+    float gullibility;
     std::vector<Medal> medalsForSale;
     int money; // Деньги NPC
     NPCType type;
@@ -41,11 +41,9 @@ private:
 
 
     std::wstring GetDialogResponse(BargainTactic, bool success);
-    float CalculateTacticSuccessChance(BargainTactic tactic, const Player& player);
-
-
+    float CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) const;
 
     void AddMedal(const Medal& medal);
-    bool TryToCheat(Player& player, const Medal& medal); // Попытка обмануть
-    int Bargain(int initialPrice, float playerSkill); // Торг
+    bool TryToCheat(Player& player, const Medal& medal);
+    int Bargain(int initialPrice, float playerSkill);
 };

@@ -30,8 +30,8 @@ public:
     void EatFood();
     void Rest();
     void ShowStats() const;
-    void ShowChangedStats();
-    void InitPrevStats();
+    //void ShowChangedStats();
+    //void InitPrevStats();
     void BuyFromNPC(Location& currentLocation);
     void ApplyMedalEffects(const Medal& medal);
 
