@@ -1,4 +1,6 @@
 #include "MedalManager.h"
+#include "Medal.h"
+#include <random>
 
 MedalManager::MedalManager() = default;
 
@@ -16,11 +18,13 @@ float MedalManager::GetEffectMultiplier(const std::wstring& effectOnPlayer, int 
         multiplier += 0.10f;
     }
 
-    if (effectOnPlayer.find(L"разблокировать квест") != std::wstring::npos) {
-        // Handle quest unlocking separately
-    }
-
+    // репутация влияет, но не слишком жестко
     multiplier += playerReputation * 0.005f;
+
+    // защита от улёта цен в космос
+    if (multiplier < 0.5f) multiplier = 0.5f;
+    if (multiplier > 2.0f) multiplier = 2.0f;
+
     return multiplier;
 }
 

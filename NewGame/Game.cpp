@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <iostream>
 #include "ConsoleColors.h"
+#include "MedalDatabase.h"
 #include <limits>
 #include <string>
 #include <Windows.h>
@@ -62,15 +63,17 @@ void Game::StartGame() {
     Beep(440, 300);  // Ля (A4)
     Beep(392, 300);  // Соль (G4)
     Beep(330, 600);  // Ми (E4) — длинная нота
+    
+    player.money = 30000;
+    player.hunger = 0;
+    player.fatigue = 0;
+    player.reputation = 0;
+    player.InitPrevStats();
 
     auto startingMedals = MedalDatabase::GetCheapestMedals(10);
     for (const auto& medal : startingMedals) {
         player.AddMedal(medal);
     }
-
-    for (const auto& medal : startingMedals) {
-        player.AddMedal(medal);
-      }
 
     PrintAnimated(L"Ты в Химках. У тебя нет денег. Только медали и отчаяние.\n");
     std::wcin.ignore((std::numeric_limits<std::streamsize>::max)(), L'\n');
@@ -105,8 +108,7 @@ void Game::ShowLocations() const {
 void Game::RenderUI() {
 
     if (skipUI) {
-        skipUI = false; // сброс
-        return;
+        skipUI = false;
     }
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
     std::wcout << L"\n...........................................\n";
@@ -172,9 +174,6 @@ void Game::HandlePlayerChoice(int choice) {
     default: std::wcout << L"Неверный выбор!\n";
     }
 
-    if (!eventActive && actionsToday >= 5) {
-        NextDay();
-    }
 }
 
 void Game::ApplyWeatherEffects() {
@@ -193,16 +192,25 @@ void Game::ApplyWeatherEffects() {
 }
 
 void Game::ProcessDailyPayments() {
-    if (skipFirstPayment) {
-        skipFirstPayment = false;
-        return;
-    }
 
     std::random_device rd;
     std::mt19937 rng(rd());
 
+    if (day % 7 == 0 && !taxesList.empty()) {
+        std::uniform_int_distribution<int> dist(0, static_cast<int>(taxesList.size()) - 1);
+        const Tax& selectedTax = taxesList[dist(rng)];
+
+        std::uniform_real_distribution<> variation(0.8, 1.2);
+        int finalAmount = static_cast<int>(selectedTax.amount * variation(rng));
+
+        player.money -= finalAmount;
+        std::wcout << L"С вас снято " << finalAmount << L" руб. — " << selectedTax.name << L" (еженедельно).\n";
+    }
+
     player.money -= utilitiesCost;
-    std::wcout << L"С вас снято " << utilitiesCost << L" руб. за ЖКХ.\n";
+    if (day % 30 == 0) {
+        std::wcout << L"С вас снято " << utilitiesCost << L" руб. за ЖКХ (ежемесячно).\n";
+    }
 
     if (!taxesList.empty()) {
         std::uniform_int_distribution<int> dist(0, static_cast<int>(taxesList.size()) - 1);
@@ -214,23 +222,11 @@ void Game::ProcessDailyPayments() {
         player.money -= finalAmount;
         std::wcout << L"С вас снято " << finalAmount << L" руб. — " << selectedTax.name << L".\n";
     }
-
-    if (!rentPaid) {
-        if (daysUntilEviction > 0) {
-            std::wcout << L"У вас есть " << daysUntilEviction
-                << L" день, чтобы заплатить за квартиру: " << rentDue << L" руб.\n";
-            daysUntilEviction--;
-        }
-        else {
-            rentDue = static_cast<int>(rentDue * (1.0 + rentIncreaseRate));
-            std::wcout << L"Вы не заплатили вовремя! Долг вырос до " << rentDue << L" руб.\n";
-        }
-    }
+       
 }
 
 void Game::NextDay() {
     weather.GenerateNewWeather();
-
 
     if (isOverworked) {
         player.fatigue += 30;
@@ -254,7 +250,6 @@ void Game::NextDay() {
 
     actionsToday = 0;
     firstActionOfDay = true;
-    rentPaid = false;
     player.hunger += 10;
     player.fatigue += 12; 
     
@@ -464,6 +459,13 @@ void Game::ShowNPCs() const {
     }
 }
 
+static void RestockNPC(NPC& npc, int count = 5) {
+    auto newMedals = MedalDatabase::GetRandomMedals(count);
+    for (auto& m : newMedals) {
+        npc.medalsForSale.push_back(m);
+    }
+}
+
 void Game::InteractWithNPC() {
     ShowNPCs();
     if (currentLocation.npcs.empty()) return;
@@ -501,19 +503,87 @@ void Game::InteractWithNPC() {
         return;
     }
 
+
+
+
     Medal selectedMedal = npc.medalsForSale[medalChoice - 1];
-    int price = (selectedMedal.minPrice + selectedMedal.maxPrice) / 2;
+
+
+    MedalManager manager;
+    int market = manager.GetMarketValue(selectedMedal, player.reputation, false);
+    int price = static_cast<int>(market * currentLocation.priceModifier * 1.15f);
+
+    std::wcout << L"\nОсмотреть медаль перед покупкой? (500 руб, +5 усталости) (1-Да, 0-Нет): ";
+    int inspectChoice = 0;
+    std::wcin >> inspectChoice;
+
+    if (inspectChoice == 1) {
+        if (player.money < 500) {
+            std::wcout << L"Не хватает денег на осмотр.\n";
+        }
+        else {
+            player.money -= 500;
+            player.fatigue += 5;
+            if (player.fatigue > 100) player.fatigue = 100;
+
+            // Простая экспертиза: репутация помогает, tier мешает, усталость/голод мешают,
+            // локация влияет через fakeDetectionChance
+            auto ClampF = [](float x, float a, float b) {
+                if (x < a) return a;
+                if (x > b) return b;
+                return x;
+                };
+
+            float rep01 = ClampF(player.reputation / 100.0f, -1.0f, 1.0f);
+            float fatigue01 = ClampF(player.fatigue / 100.0f, 0.0f, 1.0f);
+            float hunger01 = ClampF(player.hunger / 100.0f, 0.0f, 1.0f);
+
+            float tierPenalty = 0.06f;
+            if (selectedMedal.tier == MedalTier::Medium) tierPenalty = 0.12f;
+            if (selectedMedal.tier == MedalTier::Valuable) tierPenalty = 0.20f;
+            if (selectedMedal.tier == MedalTier::Unique) tierPenalty = 0.30f;
+
+            float pCorrect = 0.55f + rep01 * 0.15f
+                - tierPenalty
+                - fatigue01 * 0.12f
+                - hunger01 * 0.08f
+                + currentLocation.fakeDetectionChance * 0.10f;
+
+            pCorrect = ClampF(pCorrect, 0.12f, 0.93f);
+
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            std::uniform_real_distribution<float> roll(0.0f, 1.0f);
+
+            bool correct = (roll(gen) < pCorrect);
+            bool verdictFake = selectedMedal.isFake;
+            if (!correct) verdictFake = !verdictFake;
+
+            if (verdictFake) {
+                ConsoleColors::SetColor(ConsoleColors::MAGENTA);
+                std::wcout << L"Осмотр: подозрительно… похоже, фейк.\n";
+                ConsoleColors::Reset();
+            }
+            else {
+                ConsoleColors::SetColor(ConsoleColors::GREEN);
+                std::wcout << L"Осмотр: похоже на оригинал.\n";
+                ConsoleColors::Reset();
+            }
+        }
+    }
 
     // Торг
     std::wcout << L"Цена: " << price << L" руб. Попробовать поторговаться? (1-Да, 0-Нет): ";
-    int bargainChoice;
+    int bargainChoice = 0;
     std::wcin >> bargainChoice;
 
     if (bargainChoice == 1) {
-        price = npc.Bargain(price, player.reputation * 0.01f);
-        std::wcout << L"Новая цена после торга: " << price << L" руб.\n";
+        bool accepted = player.StartBargainDialogue(npc, selectedMedal, price, /*isBuying=*/true);
+        if (!accepted) {
+            std::wcout << L"Ты отказался от сделки.\n";
+            return;
+        }
     }
-
     // Попытка обмануть
     std::wcout << L"Попробовать обмануть? (1-Да, 0-Нет): ";
     int cheatChoice;
@@ -526,6 +596,12 @@ void Game::InteractWithNPC() {
             std::wcout << L"Репутация: " << player.reputation << L" (-5)\n";
             ConsoleColors::Reset();
             player.AddMedal(selectedMedal);
+            npc.medalsForSale.erase(npc.medalsForSale.begin() + (medalChoice - 1));
+
+            if (npc.medalsForSale.empty()) {
+                RestockNPC(npc, 5);
+                std::wcout << L"У " << npc.name << L" появились новые медали.\n";
+            }
             return;
         }
         else {
@@ -542,6 +618,12 @@ void Game::InteractWithNPC() {
         player.money -= price;
         player.AddMedal(selectedMedal);
         npc.money += price;
+        npc.medalsForSale.erase(npc.medalsForSale.begin() + (medalChoice - 1));
+
+        if (npc.medalsForSale.empty()) {
+            npc.Restock(5);
+            std::wcout << L"У " << npc.name << L" появились новые медали.\n";
+        }
         std::wcout << L"Ты купил " << selectedMedal.name << L" за " << price << L" руб.\n";
     }
     else {

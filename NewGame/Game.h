@@ -35,7 +35,7 @@ private:
     int utilitiesCost = 5000;
     int taxesCost = 2000;
     bool rentPaid = false;
-    static const int MAX_DAY = 10;
+    static const int MAX_DAY = 30;
     bool skipFirstPayment = true;
 
 

@@ -4,6 +4,7 @@
 #include "Location.h"
 #include "Weather.h"
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
 
@@ -11,7 +12,6 @@ class NPC;
 
 class Player {
 private:
-    bool StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice);
     int prevMoney = -1;
     int prevHunger = -1;
     int prevFatigue = -1;
@@ -23,6 +23,8 @@ public:
     int fatigue = 0;
     int reputation = 0;
     Inventory inventory;
+    std::map<std::wstring, int> npcTrust;
+    bool StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, bool isBuying);
 
     void AddMedal(const Medal& medal);
     void ShowInventory() const;
@@ -33,4 +35,6 @@ public:
     void ShowChangedStats();
     void InitPrevStats();
     void BuyFromNPC(Location& currentLocation);
+    int GetTrust(const std::wstring& npcName) const;
+    void ChangeTrust(const std::wstring& npcName, int delta);
 };

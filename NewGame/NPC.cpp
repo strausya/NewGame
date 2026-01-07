@@ -3,11 +3,23 @@
 #include <algorithm>
 #include <random>
 #include <cmath>
+#include "MedalDatabase.h"
 
 
+template<typename T>
+T ClampT(T x, T a, T b) {
+    return (x < a) ? a : (x > b) ? b : x;
+}
 
 void NPC::AddMedal(const Medal& medal) {
     medalsForSale.push_back(medal);
+}
+
+void NPC::Restock(int count) {
+    auto newMedals = MedalDatabase::GetRandomMedals(count);
+    for (auto& m : newMedals) {
+        medalsForSale.push_back(m);
+    }
 }
 
 bool NPC::TryToCheat(Player& player, const Medal& medal) {
@@ -197,29 +209,50 @@ std::wstring NPC::GetDialogResponse(BargainTactic tactic, bool success) {
     return responses[rand() % responses.size()];
 }
 
-float NPC::CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) {
-    float baseChance = 0.3f;
 
+static float ClampF(float x, float a, float b) {
+    if (x < a) return a;
+    if (x > b) return b;
+    return x;
+}
+
+float NPC::TacticMod(BargainTactic tactic, const NPC& npc) {
     switch (tactic) {
-    case BargainTactic::BLUFF:
-        baseChance += player.reputation * 0.001f;
-        break;
-    case BargainTactic::FLATTERY:
-        baseChance += (1.0f - gullibility) * 0.2f;
-        break;
-    case BargainTactic::THREAT:
-        baseChance -= player.reputation * 0.002f;
-        break;
-    case BargainTactic::REASON:
-        baseChance += 0.1f;
-        break;
-    case BargainTactic::PATIENCE:
-        baseChance += 0.05f;
-        break;
+    case BargainTactic::BLUFF: {
+        float m = 0.10f * npc.gullibility;
+        if (npc.type == NPCType::COLLECTOR) m -= 0.08f;
+        return m;
     }
+    case BargainTactic::FLATTERY: {
+        float m = 0.07f;
+        if (npc.type == NPCType::HOBBYIST) m += 0.04f;
+        return m;
+    }
+    case BargainTactic::THREAT:
+        return (npc.type == NPCType::TRADER) ? 0.08f : -0.18f;
+    case BargainTactic::REASON:
+        return (npc.type == NPCType::COLLECTOR || npc.type == NPCType::VETERAN) ? 0.10f : 0.05f;
+    case BargainTactic::PATIENCE:
+        return 0.05f;
+    default:
+        return 0.0f;
+    }
+}
 
-    // Manual clamp for compatibility
-    if (baseChance < 0.1f) return 0.1f;
-    if (baseChance > 0.9f) return 0.9f;
-    return baseChance;
+float NPC::CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) const {
+    float fatigue = ClampT(player.fatigue / 100.0f, 0.0f, 1.0f);
+    float hunger = ClampT(player.hunger / 100.0f, 0.0f, 1.0f);
+
+    float rep01 = ClampT(player.reputation / 100.0f, -1.0f, 1.0f);
+    float trust01 = ClampT(player.GetTrust(this->name) / 100.0f, -1.0f, 1.0f);
+
+    float base = 0.42f;
+    float repB = rep01 * 0.14f;
+    float trustB = trust01 * 0.16f;
+    float npcHard = -this->bargainDifficulty * 0.30f;
+    float needs = -(fatigue * 0.18f + hunger * 0.10f);
+    float tacticB = NPC::TacticMod(tactic, *this);
+
+    float p = base + repB + trustB + npcHard + needs + tacticB;
+    return ClampT(p, 0.06f, 0.88f);
 }

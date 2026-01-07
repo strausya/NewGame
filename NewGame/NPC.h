@@ -27,6 +27,7 @@ class NPC {
 private:
     std::map<BargainTactic, std::vector<std::wstring>> dialogLines;
     void InitializeDialogs();
+
     
    public:
     std::wstring name;
@@ -38,11 +39,12 @@ private:
     NPCType type;
     NPC(const std::wstring& name, const std::wstring& backstory, NPCType type,
         float bargainDifficulty, float gullibility, int money = 0);
+    void Restock(int count);
 
 
     std::wstring GetDialogResponse(BargainTactic, bool success);
-    float CalculateTacticSuccessChance(BargainTactic tactic, const Player& player);
-
+    float CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) const;
+    static float TacticMod(BargainTactic tactic, const NPC& npc);
 
 
     void AddMedal(const Medal& medal);
