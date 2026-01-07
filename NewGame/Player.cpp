@@ -50,15 +50,7 @@ void Player::Trade(Location& currentLocation) {
             std::wcin >> bargainChoice;
 
             if (bargainChoice == 1) {
-                bool accepted = StartBargainDialogue(npc, selectedMedal, finalPrice);
-                if (accepted) {
-                    if (currentLocation.bargainBonus > 0.0f) {
-                        finalPrice = static_cast<int>(finalPrice * (1.0f + currentLocation.bargainBonus));
-                    }
-                    this->money += finalPrice;
-                    this->inventory.RemoveByIndex(choice - 1);
-                    std::wcout << L"Сделка заключена!\n";
-                }
+                StartBargainDialogue(npc, selectedMedal, finalPrice);
                 return;
             }
         }
@@ -169,7 +161,7 @@ void Player::BuyFromNPC(Location& currentLocation) {
     }
 }
 
-bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
+void Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
     std::wcout << L"\n=== ТОРГ ===\n";
     std::wcout << L"Текущая цена: " << currentPrice << L" руб.\n\n";
 
@@ -236,11 +228,13 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice) {
     std::wcin >> finalChoice;
 
     if (finalChoice == 1) {
-        return true;
+        this->money += currentPrice;
+        // Inventory removal will be handled in Trade function
+        std::wcout << L"Сделка заключена!\n";
     }
-
-    std::wcout << L"Торг прекращен.\n";
-    return false;
+    else {
+        std::wcout << L"Торг прекращен.\n";
+    }
 }
 
 void Player::EatFood() {

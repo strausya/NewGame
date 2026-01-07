@@ -11,7 +11,7 @@ class NPC;
 
 class Player {
 private:
-    bool StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice);
+    void StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice);
     int prevMoney = -1;
     int prevHunger = -1;
     int prevFatigue = -1;
