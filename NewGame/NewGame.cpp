@@ -6,6 +6,7 @@
 #include <thread> 
 #include <iostream>
 #include "Game.h"
+#include "TextPrinter.h"
 
 int main() {
 
@@ -31,6 +32,6 @@ int main() {
                 
     }
 
-    std::wcout << L"\nИгра окончена. Спасибо за участие.\n";
+    TextPrinter::PrintLine(L"Игра окончена.\n");
     return 0;
 }

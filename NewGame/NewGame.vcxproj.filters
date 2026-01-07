@@ -48,6 +48,9 @@
     <ClCompile Include="ConsoleColors.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="TextPrinter.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Player.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Weather.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextPrinter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
