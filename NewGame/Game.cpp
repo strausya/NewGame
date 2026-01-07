@@ -193,19 +193,21 @@ void Game::ApplyWeatherEffects() {
 }
 
 void Game::ProcessDailyPayments() {
+    if (skipFirstPayment) {
+        skipFirstPayment = false;
+        return;
+    }
+
     std::random_device rd;
     std::mt19937 rng(rd());
 
-    // Списываем ЖКХ
     player.money -= utilitiesCost;
     std::wcout << L"С вас снято " << utilitiesCost << L" руб. за ЖКХ.\n";
 
-    // Выбираем случайный налог
     if (!taxesList.empty()) {
         std::uniform_int_distribution<int> dist(0, static_cast<int>(taxesList.size()) - 1);
         const Tax& selectedTax = taxesList[dist(rng)];
 
-        // Рандомизируем сумму налога
         std::uniform_real_distribution<> variation(0.8, 1.2);
         int finalAmount = static_cast<int>(selectedTax.amount * variation(rng));
 
@@ -213,7 +215,6 @@ void Game::ProcessDailyPayments() {
         std::wcout << L"С вас снято " << finalAmount << L" руб. — " << selectedTax.name << L".\n";
     }
 
-    // Оплата квартиры
     if (!rentPaid) {
         if (daysUntilEviction > 0) {
             std::wcout << L"У вас есть " << daysUntilEviction

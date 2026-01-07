@@ -35,7 +35,9 @@ private:
     int utilitiesCost = 5000;
     int taxesCost = 2000;
     bool rentPaid = false;
-    static const int MAX_DAY = 10; // ограничение на демонстрацию
+    static const int MAX_DAY = 10;
+    bool skipFirstPayment = true;
+
 
 
     struct Tax {
