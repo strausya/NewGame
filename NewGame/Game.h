@@ -23,11 +23,12 @@ private:
     std::vector<GameEvent> currentEvents;
     bool eventActive = false;
     void ApplyWeatherEffects();
-    int actionsToday = 0;        // Счетчик действий за день
-    bool isOverworked = false;   // Флаг перегруза
+    bool skipFirstPayment = true;
+    int actionsToday = 0;        // Г‘Г·ГҐГІГ·ГЁГЄ Г¤ГҐГ©Г±ГІГўГЁГ© Г§Г  Г¤ГҐГ­Гј
+    bool isOverworked = false;   // Г”Г«Г ГЈ ГЇГҐГ°ГҐГЈГ°ГіГ§Г 
     bool firstActionOfDay;
     static void PrintAnimated(const std::wstring& text, int delayMs = 1);
-    std::vector<std::wstring> prevActions; // предыдущее меню действий
+    std::vector<std::wstring> prevActions; // ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г¬ГҐГ­Гѕ Г¤ГҐГ©Г±ГІГўГЁГ©
     bool skipUI = false;
     int rentDue = 55000;
     int daysUntilEviction = 1;
@@ -35,7 +36,7 @@ private:
     int utilitiesCost = 5000;
     int taxesCost = 2000;
     bool rentPaid = false;
-    static const int MAX_DAY = 10; // ограничение на демонстрацию
+    static const int MAX_DAY = 10; // Г®ГЈГ°Г Г­ГЁГ·ГҐГ­ГЁГҐ Г­Г  Г¤ГҐГ¬Г®Г­Г±ГІГ°Г Г¶ГЁГѕ
 
 
     struct Tax {
