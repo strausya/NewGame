@@ -38,10 +38,19 @@ int MedalManager::GetMarketValue(const Medal& medal, int playerReputation, bool 
         return cachedPrice;
     }
 
-    int basePrice = Random(medal.minPrice, medal.maxPrice);
+    // basePrice = Random(medal.minPrice, medal.maxPrice);
+    int mid = (medal.minPrice + medal.maxPrice) / 2;
+    float jitter = Random(70, 110) / 100.0f; // 0.90..1.10
+    int basePrice = static_cast<int>(mid * jitter);
+
 
     if (medal.isFake) {
-        basePrice = Random(medal.minPrice / 4, medal.maxPrice / 2);
+        //basePrice = Random(medal.minPrice / 4, medal.maxPrice / 2);
+
+        int fakeMid = std::max(1, mid / 3);
+        float fakeJitter = Random(85, 105) / 100.0f; // 0.85..1.05
+        basePrice = static_cast<int>(fakeMid * fakeJitter);
+
     }
 
     float multiplier = GetEffectMultiplier(medal.effectOnPlayer, playerReputation);

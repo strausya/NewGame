@@ -1,5 +1,6 @@
 #include "Location.h"
 #include "MedalDatabase.h"
+#include "Player.h"
 #include <random>
 #include <ctime>
 #include <cstdlib>
@@ -240,36 +241,90 @@ std::wstring Location::GetTradeDescription() const {
     }
 }
 
-std::vector<GameEvent> Location::GenerateDailyEvents() const {
+std::vector<GameEvent> Location::GenerateDailyEvents(const Player& player) const {
     std::vector<GameEvent> events;
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    std::uniform_int_distribution<> eventDist(0, 100);
+    std::uniform_int_distribution<> roll(0, 100);
 
-    // Базовый шанс события (30%)
-    if (eventDist(gen) > 70) return events;
+    auto HasEffect = [&](const std::wstring& key) {
+        for (const auto& m : player.inventory.GetItems()) {
+            if (m.effectOnPlayer.find(key) != std::wstring::npos) return true;
+        }
+        return false;
+        };
+
+    auto CountByKeywordInEffect = [&](const std::wstring& key) {
+        int c = 0;
+        for (const auto& m : player.inventory.GetItems()) {
+            if (m.effectOnPlayer.find(key) != std::wstring::npos) c++;
+        }
+        return c;
+        };
+
+    // База 30%, но если есть "ивентные" медали — шанс выше
+    int baseChance = 30;
+    if (HasEffect(L"разблокирует") || HasEffect(L"VIP") || HasEffect(L"избежать")) baseChance += 15;
+
+    if (roll(gen) > baseChance) return events;
 
     GameEvent event;
     std::uniform_int_distribution<> typeDist(0, 3);
 
-    switch (typeDist(gen)) {
-    case 0: // Нейтральное событие
-        event.type = EventType::Neutral;
-        event.description = GetRandomEvent();
-        break;
-    case 1: // Положительное
+    // --- Медальные события (только если есть нужные эффекты) ---
+    // 1) VIP контакт
+    if (HasEffect(L"VIP") && roll(gen) < 45) {
         event.type = EventType::Positive;
-        event.description = L"Тебе повезло! " + GetRandomEvent();
+        event.description =
+            L"МЕДАЛЬНЫЙ СЛУЧАЙ: тебя узнают по награде. Открывается VIP-контакт.\n"
+            L"Почему так: эффект медали дал социальный доступ.";
+        event.moneyEffect = 400 + (rand() % 600);
+        event.reputationEffect = 3;
+        events.push_back(event);
+        return events;
+    }
+
+    // 2) Разблок-квест
+    if (HasEffect(L"разблокировать_квест") && roll(gen) < 45) {
+        event.type = EventType::Special;
+        event.description =
+            L"МЕДАЛЬНЫЙ СЛУЧАЙ: коллекционер шепчет о \"следе\". Похоже, это зацепка.\n"
+            L"Почему так: эффект медали открыл особое событие.";
+        event.items = MedalDatabase::GetRandomMedals(1);
+        events.push_back(event);
+        return events;
+    }
+
+    // 3) “Избежать облавы” превращает негатив в нейтрал/плюс
+    if (HasEffect(L"избежать") && roll(gen) < 35) {
+        event.type = EventType::Neutral;
+        event.description =
+            L"МЕДАЛЬНЫЙ СЛУЧАЙ: намечалась облава, но тебя не трогают.\n"
+            L"Почему так: эффект медали спас от неприятности (один раз за день).";
+        event.reputationEffect = 1;
+        events.push_back(event);
+        return events;
+    }
+
+    // --- Обычная система (как была), но с понятным "почему" ---
+    switch (typeDist(gen)) {
+    case 0:
+        event.type = EventType::Neutral;
+        event.description = GetRandomEvent() + L"\nПочему так: обычный день, без особых факторов.";
+        break;
+    case 1:
+        event.type = EventType::Positive;
+        event.description = L"Тебе повезло! " + GetRandomEvent() + L"\nПочему так: удачное стечение обстоятельств.";
         event.moneyEffect = 50 + (rand() % 200);
         break;
-    case 2: // Отрицательное
+    case 2:
         event.type = EventType::Negative;
-        event.description = L"Неудача! " + GetRandomEvent();
+        event.description = L"Неудача! " + GetRandomEvent() + L"\nПочему так: риск улицы и случайности.";
         event.moneyEffect = -(20 + (rand() % 100));
         break;
-    case 3: // Особое (с предметами)
+    case 3:
         event.type = EventType::Special;
-        event.description = L"Особый случай! " + GetRandomEvent();
+        event.description = L"Особый случай! " + GetRandomEvent() + L"\nПочему так: редкая возможность (лот/находка).";
         event.items = MedalDatabase::GetRandomMedals(1);
         break;
     }
@@ -277,6 +332,5 @@ std::vector<GameEvent> Location::GenerateDailyEvents() const {
     events.push_back(event);
     return events;
 }
-
 
 

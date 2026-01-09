@@ -25,12 +25,8 @@ int main() {
         std::wcin >> choice;
         game.HandlePlayerChoice(choice);
         void CheckFinalConditions();
-        Beep(392, 300);  // Соль (G4)
-        Beep(440, 300);  // Ля (A4)
-        Beep(392, 300);  // Соль (G4)
-        Beep(330, 600);  // Ми (E4) — длинная нота
-                
-    }
+        Sleep(1000);
+      }
 
     TextPrinter::PrintLine(L"Игра окончена.\n");
     return 0;

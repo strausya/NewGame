@@ -22,12 +22,11 @@ void NPC::Restock(int count) {
     }
 }
 
-bool NPC::TryToCheat(Player& player, const Medal& medal) {
+/*bool NPC::TryToCheat(Player& player, const Medal& medal) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
-    // Ўанс успеха зависит от gullibility NPC и репутации игрока
     float successChance = gullibility * (1.0f - player.reputation * 0.01f);
     if (dis(gen) < successChance) {
         player.reputation -= 5;
@@ -37,7 +36,7 @@ bool NPC::TryToCheat(Player& player, const Medal& medal) {
         player.reputation -= 15;
         return false;
     }
-}
+}*/
 
 int NPC::Bargain(int initialPrice, float playerSkill) {
     std::random_device rd;
@@ -203,10 +202,24 @@ std::wstring NPC::GetDialogResponse(BargainTactic tactic, bool success) {
     const auto& responsesMap = success ? successResponses : failResponses;
     const auto& responses = responsesMap.at(type).at(tactic);
 
-    if (responses.empty()) {
-        return L"...";
+    if (responses.empty()) return L"...";
+
+    static std::map<std::wstring, std::wstring> lastLineByKey;
+    std::wstring key = name + L"|" + std::to_wstring((int)type) + L"|" + std::to_wstring((int)tactic) + L"|" + (success ? L"1" : L"0");
+
+    std::wstring chosen = responses[rand() % responses.size()];
+    if (!responses.empty()) {
+        for (int i = 0; i < 6; ++i) {
+            std::wstring candidate = responses[rand() % responses.size()];
+            if (lastLineByKey[key] != candidate) {
+                chosen = candidate;
+                break;
+            }
+        }
     }
-    return responses[rand() % responses.size()];
+
+    lastLineByKey[key] = chosen;
+    return chosen;
 }
 
 
@@ -240,19 +253,70 @@ float NPC::TacticMod(BargainTactic tactic, const NPC& npc) {
 }
 
 float NPC::CalculateTacticSuccessChance(BargainTactic tactic, const Player& player) const {
-    float fatigue = ClampT(player.fatigue / 100.0f, 0.0f, 1.0f);
-    float hunger = ClampT(player.hunger / 100.0f, 0.0f, 1.0f);
+    auto ClampF = [](float x, float a, float b) { return (x < a) ? a : (x > b ? b : x); };
 
-    float rep01 = ClampT(player.reputation / 100.0f, -1.0f, 1.0f);
-    float trust01 = ClampT(player.GetTrust(this->name) / 100.0f, -1.0f, 1.0f);
+    float fatigue = ClampF(player.fatigue / 100.0f, 0.0f, 1.0f);
+    float hunger = ClampF(player.hunger / 100.0f, 0.0f, 1.0f);
 
-    float base = 0.42f;
-    float repB = rep01 * 0.14f;
-    float trustB = trust01 * 0.16f;
-    float npcHard = -this->bargainDifficulty * 0.30f;
-    float needs = -(fatigue * 0.18f + hunger * 0.10f);
-    float tacticB = NPC::TacticMod(tactic, *this);
+    float rep01 = ClampF(player.reputation / 100.0f, -1.0f, 1.0f);
+    float trust01 = ClampF(player.GetTrust(this->name) / 100.0f, -1.0f, 1.0f);
+
+    // Ѕаза ниже, но репутаци€/доверие решают сильнее
+    float base = 0.28f;
+
+    // –епутаци€ и доверие сильнее вли€ют, чтобы игрок "строил отношени€"
+    float repB = rep01 * 0.22f;
+    float trustB = trust01 * 0.30f;
+
+    // —ложность NPC режет сильнее
+    float npcHard = -this->bargainDifficulty * 0.55f;
+
+    // ”стал/голоден Ч хуже торгуешьс€
+    float needs = -(fatigue * 0.22f + hunger * 0.14f);
+
+    // --- “актика с ЅќЋ№Ў»ћ –ј«Ѕ–ќ—ќћ ---
+    float tacticB = 0.0f;
+    switch (tactic) {
+    case BargainTactic::BLUFF:
+        // сильна€ зависимость от gullibility и типа
+        tacticB = 0.10f + 0.35f * this->gullibility;
+        if (type == NPCType::COLLECTOR) tacticB -= 0.35f;
+        if (type == NPCType::VETERAN)   tacticB -= 0.18f;
+        break;
+
+    case BargainTactic::FLATTERY:
+        tacticB = 0.14f;
+        if (type == NPCType::HOBBYIST)  tacticB += 0.12f;
+        if (type == NPCType::TRADER)    tacticB -= 0.06f;
+        break;
+
+    case BargainTactic::THREAT:
+        // очень пол€рна€ тактика
+        tacticB = -0.10f;
+        if (type == NPCType::TRADER)    tacticB = 0.30f;
+        if (type == NPCType::COLLECTOR) tacticB = -0.42f;
+        if (type == NPCType::VETERAN)   tacticB = -0.30f;
+        if (type == NPCType::HOBBYIST)  tacticB = -0.35f;
+        break;
+
+    case BargainTactic::REASON:
+        tacticB = 0.06f;
+        if (type == NPCType::COLLECTOR) tacticB = 0.34f;
+        if (type == NPCType::VETERAN)   tacticB = 0.22f;
+        if (type == NPCType::TRADER)    tacticB = 0.10f;
+        break;
+
+    case BargainTactic::PATIENCE:
+        // терпение зависит от твоего состо€ни€ и типа NPC
+        tacticB = 0.08f - fatigue * 0.10f - hunger * 0.06f;
+        if (type == NPCType::TRADER)    tacticB -= 0.08f;
+        if (type == NPCType::COLLECTOR) tacticB += 0.06f;
+        break;
+    default:
+        break;
+    }
 
     float p = base + repB + trustB + npcHard + needs + tacticB;
-    return ClampT(p, 0.06f, 0.88f);
+    // широкий диапазон: иногда почти 0, иногда очень высоко
+    return ClampF(p, 0.03f, 0.92f);
 }

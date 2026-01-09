@@ -40,6 +40,7 @@ private:
 
 
 
+
     struct Tax {
     std::wstring name;
     int amount;
@@ -61,8 +62,9 @@ public:
     void ShowLocations() const;
     void HandleEvent();
     void ShowEventMenu();
-    void ShowNPCs() const;
-    void InteractWithNPC();
+    //void ShowNPCs() const;
+   // void InteractWithNPC();
+
 
 private:
     void CheckFinalConditions();

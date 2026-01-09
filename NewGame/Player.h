@@ -16,6 +16,7 @@ private:
     int prevHunger = -1;
     int prevFatigue = -1;
     int prevReputation = -1;
+    int userPrice;
 
 public:
     int money = 0;
@@ -24,7 +25,7 @@ public:
     int reputation = 0;
     Inventory inventory;
     std::map<std::wstring, int> npcTrust;
-    bool StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, bool isBuying);
+    bool StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, bool isBuying, int playerFirstPrice);
 
     void AddMedal(const Medal& medal);
     void ShowInventory() const;
@@ -37,4 +38,10 @@ public:
     void BuyFromNPC(Location& currentLocation);
     int GetTrust(const std::wstring& npcName) const;
     void ChangeTrust(const std::wstring& npcName, int delta);
+    void ShowNPCs(const std::vector<NPC>& npcs) const;
+    void SfxVictory();
+    void SfxDefeat();
+    void SfxGameOver();
+    void SfxUIConfirm();
+    void SfxUIError();
 };

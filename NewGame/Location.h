@@ -30,5 +30,5 @@ public:
 
     std::wstring GetTradeDescription() const;
     std::wstring GetRandomEvent() const;
-    std::vector<GameEvent> GenerateDailyEvents() const;
+    std::vector<GameEvent> GenerateDailyEvents(const Player& player) const;
 };
