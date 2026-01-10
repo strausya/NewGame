@@ -37,8 +37,17 @@ private:
     bool rentPaid = false;
     static const int MAX_DAY = 30;
     bool skipFirstPayment = true;
+    bool stateDirty = true;
 
-
+    enum class UIContext {
+        DayStart,
+        MainMenu,
+        BuyMenu,
+        SellMenu,
+        Trade,
+        Message
+    };
+    UIContext currentUI = UIContext::DayStart;
 
 
     struct Tax {
@@ -57,13 +66,13 @@ public:
     void NextDay();
     void HandlePlayerChoice(int choice);
     void RenderUI();
+    void RenderContextUI();
     bool IsGameOver() const { return gameOver; }
     void ChangeLocation();
     void ShowLocations() const;
     void HandleEvent();
     void ShowEventMenu();
-    //void ShowNPCs() const;
-   // void InteractWithNPC();
+
 
 
 private:

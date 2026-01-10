@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <random>
 #include <limits>
+#include <vector>
+#include <string>
 #include <cmath>
 #include <Windows.h>
 
@@ -193,6 +195,7 @@ void Player::Trade(Location& currentLocation) {
     std::wcout << L"Продано: " << selectedMedal.name << L" за " << finalPrice << L" руб.\n";
     std::wcout << L"Теперь у тебя " << money << L" руб.\n";
 }
+
 void Player::ShowNPCs(const std::vector<NPC>& npcs) const {
     if (npcs.empty()) {
         std::wcout << L"Здесь никого нет.\n";
@@ -329,18 +332,14 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, boo
     int repBonus = 0, eventBonus = 0;
     GetMedalPassives(*this, bargainBonus, fatigueMult, repBonus, eventBonus);
 
-    // Иногда NPC требует "без тактик" (по ТЗ)
     bool manualOnly = false;
     if (npc.type == NPCType::COLLECTOR) manualOnly = (rand() % 100 < 35);
     else manualOnly = (rand() % 100 < 15);
 
-    // NPC уже озвучил currentPrice (свою цену). Игрок уже озвучил playerFirstPrice.
     std::wcout << L"\n=== ТОРГ ===\n";
-    std::wcout << L"Твоя цена: " << playerFirstPrice << L" руб.\n";
-    std::wcout << npc.name << L": Моя цена: " << currentPrice << L" руб.\n";
+    std::wcout << L"Ты: " << playerFirstPrice << L" руб | " << npc.name << L": " << currentPrice << L" руб\n";
+    std::wcout << L"Сбежать? (-1 Репутация) (1-Да, 0-Нет):\n";
 
-    // Опция: сразу сбежать
-    std::wcout << L"Отменить сделку и сбежать? (1-Да, 0-Нет): ";
     int flee = 0; std::wcin >> flee;
     if (flee == 1) {
         ConsoleColors::SetColor(ConsoleColors::RED);
@@ -360,7 +359,6 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, boo
         std::wcout << L"Твоя финальная цена: ";
         std::wcin >> finalOffer;
 
-        // Простая справедливость: NPC принимает, если финальная ближе к его текущей
         int diff = (finalOffer > currentPrice) ? (finalOffer - currentPrice) : (currentPrice - finalOffer);
         int tolerance = (currentPrice * 0.12f > 150)
             ? (int)(currentPrice * 0.12f)
@@ -369,16 +367,16 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, boo
         if (diff <= tolerance) {
             currentPrice = finalOffer;
             ConsoleColors::SetColor(ConsoleColors::GREEN);
-            std::wcout << L"Сделка принята.\nПочему так: финальная цена попала в допустимый диапазон.\n";
+            std::wcout << L"✔ Принято: " << currentPrice << L" руб (честно договорились)\n";
             ConsoleColors::Reset();
 
-            reputation += 2; // честно договорились
+            reputation += 2;
             ChangeTrust(npc.name, +6);
             return true;
         }
 
         ConsoleColors::SetColor(ConsoleColors::RED);
-        std::wcout << L"Отказ.\nПочему так: финальная цена слишком далека от условий NPC.\n";
+        std::wcout << L"✖ Отказ: слишком далеко от условий NPC\n";
         ConsoleColors::Reset();
 
         reputation -= 1;
@@ -394,37 +392,47 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, boo
     const int maxAttempts = 4;
 
     while (true) {
-        std::wcout << L"\nТекущая цена: " << currentPrice << L" руб.\n";
-        std::wcout << L"Выбери тактику:\n";
-        std::wcout << L"1. Блеф      (шанс: " << (int)(npc.CalculateTacticSuccessChance(BargainTactic::BLUFF, *this) * 100) << L"%)\n";
-        std::wcout << L"2. Лесть     (шанс: " << (int)(npc.CalculateTacticSuccessChance(BargainTactic::FLATTERY, *this) * 100) << L"%)\n";
-        std::wcout << L"3. Угроза    (шанс: " << (int)(npc.CalculateTacticSuccessChance(BargainTactic::THREAT, *this) * 100) << L"%)\n";
-        std::wcout << L"4. Доводы    (шанс: " << (int)(npc.CalculateTacticSuccessChance(BargainTactic::REASON, *this) * 100) << L"%)\n";
-        std::wcout << L"5. Терпение  (шанс: " << (int)(npc.CalculateTacticSuccessChance(BargainTactic::PATIENCE, *this) * 100) << L"%)\n";
-        std::wcout << L"0. Принять текущую цену\n";
-        std::wcout << L"Выбор: ";
+        std::wcout << L"\nЦена сейчас: " << currentPrice << L" руб\n";
+        std::wcout << L"Выбери:\n";
+        std::wcout << L"1) Блеф\n";
+        std::wcout << L"2) Лесть\n";
+        std::wcout << L"3) Угроза\n";
+        std::wcout << L"4) Доводы\n";
+        std::wcout << L"5) Терпение\n";
+        std::wcout << L"0) Принять цену\n";
+        std::wcout << L"9) Сбежать (-1 реп)\n";
+        std::wcout << L"> ";
 
         int tacticChoice = 0;
         std::wcin >> tacticChoice;
 
         if (tacticChoice == 0) break;
+
+        if (tacticChoice == 9) {
+            ConsoleColors::SetColor(ConsoleColors::RED);
+            std::wcout << L"Ты сбежал. -1 реп\n";
+            ConsoleColors::Reset();
+            reputation -= 1;
+            ChangeTrust(npc.name, -5);
+            return false;
+        }
+
         if (tacticChoice < 1 || tacticChoice > 5) {
             std::wcout << L"Неверный выбор!\n";
             continue;
         }
 
         attempts++;
-        BargainTactic tactic = static_cast<BargainTactic>(tacticChoice - 1);
-
-        // цена усталости/голода с учётом медалей
-        int baseFatigueCost = (tactic == BargainTactic::PATIENCE) ? 7 : (tactic == BargainTactic::THREAT ? 6 : 4);
-        fatigue += (int)(baseFatigueCost * fatigueMult);
-        hunger += 2;
-
-        if (attempts >= maxAttempts) {
+        if (attempts > maxAttempts) {
             std::wcout << L"\n" << npc.name << L": Хватит. Или берёшь, или уходи.\n";
             break;
         }
+
+        BargainTactic tactic = static_cast<BargainTactic>(tacticChoice - 1);
+
+        int baseFatigueCost = (tactic == BargainTactic::PATIENCE) ? 7 : (tactic == BargainTactic::THREAT ? 6 : 4);
+        fatigue += (int)(baseFatigueCost * fatigueMult);
+        hunger += 2;
 
         float successChance = npc.CalculateTacticSuccessChance(tactic, *this);
         bool success = (roll(gen) < successChance);
@@ -432,7 +440,9 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, boo
         std::wcout << L"\nТы: " << npc.GetDialogResponse(tactic, false) << L"\n";
         std::wcout << npc.name << L": " << npc.GetDialogResponse(tactic, success) << L"\n";
 
-        // Разные тактики — разные изменения цены (ощутимый разброс)
+        int oldPrice = currentPrice;
+        int oldRep = reputation;
+
         float changeMin = 0.04f, changeMax = 0.10f;
         if (tactic == BargainTactic::REASON) { changeMin = 0.03f; changeMax = 0.07f; }
         if (tactic == BargainTactic::THREAT) { changeMin = 0.08f; changeMax = 0.18f; }
@@ -446,44 +456,55 @@ bool Player::StartBargainDialogue(NPC& npc, Medal& medal, int& currentPrice, boo
             if (isBuying) currentPrice = (int)(currentPrice * (1.0f - swing));
             else         currentPrice = (int)(currentPrice * (1.0f + swing));
 
-            // Бонус медалей на торг слегка усиливает успех
             currentPrice = isBuying
                 ? (int)(currentPrice * (1.0f - bargainBonus * 0.35f))
                 : (int)(currentPrice * (1.0f + bargainBonus * 0.20f));
 
             ChangeTrust(npc.name, +6);
             if (tactic == BargainTactic::REASON) reputation += 1;
-            if (tactic == BargainTactic::THREAT) reputation -= 2; // угрозы вредят репутации
+            if (tactic == BargainTactic::THREAT) reputation -= 2;
         }
         else {
-            // провал зависит от тактики
             if (isBuying) {
                 float backfire = (tactic == BargainTactic::THREAT) ? 0.08f : 0.03f;
                 currentPrice = (int)(currentPrice * (1.0f + backfire));
             }
-            // при продаже провал обычно "не двигает" цену, но портит доверие/репутацию
             ChangeTrust(npc.name, -6);
             reputation -= (tactic == BargainTactic::THREAT ? 2 : 1);
         }
 
-        std::wcout << L"Почему так: шанс зависел от типа NPC, твоей репутации/доверия и выбранной тактики.\n";
-        std::wcout << L"Твоя репутация теперь: " << reputation << L"\n";
+        if (currentPrice < 1) currentPrice = 1;
+
+        int dPrice = currentPrice - oldPrice;
+        int dRep = reputation - oldRep;
+
+        if (success) ConsoleColors::SetColor(ConsoleColors::GREEN);
+        else         ConsoleColors::SetColor(ConsoleColors::RED);
+
+        std::wcout
+            << (success ? L"✔ " : L"✖ ")
+            << L"Цена: " << oldPrice << L" → " << currentPrice
+            << L" (" << (dPrice >= 0 ? L"+" : L"") << dPrice << L")"
+            << L" | Реп: " << reputation
+            << L" (" << (dRep >= 0 ? L"+" : L"") << dRep << L")\n";
+
+        ConsoleColors::Reset();
     }
 
-    std::wcout << L"\nПринять цену " << currentPrice << L" руб.? (1-Да, 0-Нет): ";
+    std::wcout << L"\nПринять " << currentPrice << L" руб? (1-Да, 0-Нет): ";
     int finalChoice = 0;
     std::wcin >> finalChoice;
 
     if (finalChoice == 1) {
         ConsoleColors::SetColor(ConsoleColors::GREEN);
-        std::wcout << L"Сделка заключена.\nПочему так: ты принял финальные условия.\n";
+        std::wcout << L"✔ Согласовано: " << currentPrice << L" руб\n";
         ConsoleColors::Reset();
         ChangeTrust(npc.name, +4);
         return true;
     }
 
     ConsoleColors::SetColor(ConsoleColors::RED);
-    std::wcout << L"Торг прекращён.\nПочему так: ты отказался от финальной цены.\n";
+    std::wcout << L"✖ Отказался от финальной цены (-1 реп)\n";
     ConsoleColors::Reset();
 
     reputation -= 1;

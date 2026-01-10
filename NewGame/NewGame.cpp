@@ -1,5 +1,3 @@
-// NewGame.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 #include <windows.h>
 #include <fcntl.h>
 #include <io.h>
@@ -24,8 +22,6 @@ int main() {
         int choice;
         std::wcin >> choice;
         game.HandlePlayerChoice(choice);
-        void CheckFinalConditions();
-        Sleep(1000);
       }
 
     TextPrinter::PrintLine(L"Игра окончена.\n");

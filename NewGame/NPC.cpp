@@ -22,22 +22,6 @@ void NPC::Restock(int count) {
     }
 }
 
-/*bool NPC::TryToCheat(Player& player, const Medal& medal) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-
-    float successChance = gullibility * (1.0f - player.reputation * 0.01f);
-    if (dis(gen) < successChance) {
-        player.reputation -= 5;
-        return true;
-    }
-    else {
-        player.reputation -= 15;
-        return false;
-    }
-}*/
-
 int NPC::Bargain(int initialPrice, float playerSkill) {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -80,7 +64,6 @@ void NPC::InitializeDialogs() {
         }}
     };
 
-    // Fix switch statement
     switch (type) {
     case NPCType::TRADER:
         baseDialogs[BargainTactic::THREAT] = {

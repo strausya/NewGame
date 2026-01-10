@@ -127,7 +127,6 @@ Location::Location(LocationType locType) : type(locType) {
         for (auto& npc : npcs) {
             auto randomMedals = MedalDatabase::GetRandomMedals(2 + rand() % 3);
             for (const auto& medal : randomMedals) {
-                // С некоторой вероятностью медаль может быть фейком
                 if (rand() % 100 < 30) {
                     Medal fakeMedal = medal;
                     fakeMedal.isFake = true;

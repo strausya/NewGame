@@ -105,6 +105,7 @@ void Game::RenderUI() {
 
     if (skipUI) {
         skipUI = false;
+        return;
     }
 
     ConsoleColors::SetColor(ConsoleColors::YELLOW);
@@ -155,7 +156,7 @@ void Game::HandlePlayerChoice(int choice) {
         // Проверка на перегруз
         if (actionsToday >= 10) {
                  NextDay();
-            skipUI = false;
+            skipUI = true;
             return;
 
         }
